@@ -2,6 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import players from './players';
 import './App.css';
 
+// -------- helpers (for GitHub Pages paths & filenames) --------
+const PUB = process.env.PUBLIC_URL;
+
+// "A'ja Wilson" -> "ajawilson"
+const slugify = (name) => (name || '').toLowerCase().replace(/[^a-z]/g, '');
+
+// map team code -> filename (avoid Windows reserved "con")
+const teamCodeToFile = (code) => {
+  const c = (code || '').toLowerCase();
+  if (c === 'con') return 'ctsun'; // <- whatever you renamed the file to
+  return c;
+};
+// --------------------------------------------------------------
+
 function App() {
   const [playerName, setPlayerName] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -135,16 +149,12 @@ function App() {
         setGuessedPlayers(prev => [...prev, correctedPlayerName]);
         setGuessesLeft(prev => prev > 0 ? prev - 1 : 0);
         setMessage("❌ Incorrect! Try again.");
-
-        // Only call Game Over if this was the last guess AND not correct
         if (guessesLeft <= 1) {
           handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
         }
       }
     } else {
       setMessage("❌ Player not found! Make sure you're guessing the correct name.");
-
-      // Only call Game Over if this was the last guess AND not correct
       if (guessesLeft <= 1) {
         handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
       }
@@ -319,7 +329,6 @@ function App() {
     localStorage.setItem('gameEndedTime', new Date().getTime().toString());
   };
 
-  // --- Share Feature ---
   const getEmoji = (feedback, type) => {
     if (type === 'team' || type === 'position' || type === 'conf') {
       if (feedback.includes('✅')) return '🟩';
@@ -369,9 +378,7 @@ function App() {
       setMessage('❌ Could not copy to clipboard.');
     }
   };
-  // --- End Share Feature ---
 
-  // Start timer when selectedPlayer or gameMode changes
   useEffect(() => {
     if (selectedPlayer) {
       clearInterval(intervalRef.current);
@@ -412,19 +419,11 @@ function App() {
               >×</button>
               <h2>How to Play</h2>
               <ul>
-                <li>
-                  <b>Guess</b>: Enter the full name of a player and click Guess to see if you are correct.
-                </li>
-                <li>
-                  <b>Show/Hide Silhouette</b>: Toggle to reveal or hide the silhouette/headshot of the player.
-                </li>
-                <li>
-                  <b>Show/Hide Jumpshot</b>: Toggle to reveal or hide the player's jumpshot video (if available).
-                </li>
+                <li><b>Guess</b>: Enter the full name of a player and click Guess.</li>
+                <li><b>Show/Hide Silhouette</b>: Toggle the silhouette/headshot.</li>
+                <li><b>Show/Hide Jumpshot</b>: Toggle the player's jumpshot video.</li>
               </ul>
-              <p>
-                <b>Note:</b> Not all players have a jumpshot clip yet. If the video is black, it means the jumpshot is not available. We'll be adding more jumpshot clips in future updates!
-              </p>
+              <p><b>Note:</b> Not all players have a jumpshot clip yet.</p>
             </div>
           </div>
         )}
@@ -446,8 +445,8 @@ function App() {
               >×</button>
               <h2>Player Revealed</h2>
               <img
-                src={`/images/${selectedPlayer.name.toLowerCase().replace(" ", "")}-actual.png`}
-                alt="Player actual"
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-actual.png`}
+                alt={selectedPlayer.name}
                 className="actual"
                 style={{maxWidth: '100%', height: 'auto', margin: '16px 0'}}
               />
@@ -562,14 +561,14 @@ function App() {
           <div className="silhouette-container">
             {showSilhouette && !showActualPortrait && (
               <img
-                src={`/images/${selectedPlayer.name.toLowerCase().replace(" ", "")}-headshot.png`}
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-headshot.png`}
                 alt="Player silhouette"
                 className="silhouette"
               />
             )}
             {gameOver && portraitModalDismissed && (
               <img
-                src={`/images/${selectedPlayer.name.toLowerCase().replace(" ", "")}-actual.png`}
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-actual.png`}
                 alt="Player actual"
                 className="actual"
               />
@@ -581,7 +580,7 @@ function App() {
           <div className="jumpshot-container">
             {showActualPortrait ? (
               <video
-                src={`${process.env.PUBLIC_URL}/images/${selectedPlayer.name.toLowerCase().replace(" ", "")}-jumpshotreveal.mp4`}
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-jumpshotreveal.mp4`}
                 autoPlay
                 loop
                 muted
@@ -592,7 +591,7 @@ function App() {
               </video>
             ) : (
               <video
-                src={`${process.env.PUBLIC_URL}/images/${selectedPlayer.name.toLowerCase().replace(" ", "")}-jumpshot.mp4`}
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-jumpshot.mp4`}
                 autoPlay
                 loop
                 muted
@@ -635,13 +634,21 @@ function App() {
                   <div className={`info-item ${prevGuess ? getFeedbackClassTeam(prevGuess.feedback.team) : ''}`}>
                     {prevGuess && (
                       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%'}}>
-                        <img
-                          src={`/logos/${prevGuess.feedback.team ? prevGuess.feedback.team.split(' ')[0].toLowerCase() : ''}.png`}
-                          alt=""
-                          style={{height: 24, marginBottom: 2, objectFit: 'contain'}}
-                        />
+                        {(() => {
+                          const code = prevGuess?.feedback?.team
+                            ? prevGuess.feedback.team.split(' ')[0]
+                            : '';
+                          const file = teamCodeToFile(code);
+                          return (
+                            <img
+                              src={`${PUB}/logos/${file}.png`}
+                              alt={code}
+                              style={{height: 24, marginBottom: 2, objectFit: 'contain'}}
+                            />
+                          );
+                        })()}
                         <span style={{fontSize: '1em', marginTop: 2}}>
-                          {prevGuess.feedback.team ? prevGuess.feedback.team.split(' ')[0] : ''}
+                          {prevGuess?.feedback?.team ? prevGuess.feedback.team.split(' ')[0] : ''}
                         </span>
                       </div>
                     )}
