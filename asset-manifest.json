@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/pheebetatest/static/css/main.8c620291.css",
+    "main.js": "/pheebetatest/static/js/main.ce970526.js",
+    "index.html": "/pheebetatest/index.html",
+    "main.8c620291.css.map": "/pheebetatest/static/css/main.8c620291.css.map",
+    "main.ce970526.js.map": "/pheebetatest/static/js/main.ce970526.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8c620291.css",
+    "static/js/main.ce970526.js"
+  ]
+}
