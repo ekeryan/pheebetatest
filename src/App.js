@@ -78,6 +78,7 @@ const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) 
 // Select the solution deterministically from rotationKey (same all day, same device)
 function pickSolutionFor(rotationKey) {
   const seed = xmur3(rotationKey)();
+  connect:
   const rand = mulberry32(seed);
   const idx = Math.floor(rand() * playersStable.length);
   return playersStable[idx];
@@ -115,7 +116,7 @@ function App() {
     return () => clearInterval(tick);
   }, []);
 
-  // Set timer based on mode
+  // (kept) Set initial timer based on mode; hydration will overwrite if saved state exists
   useEffect(() => {
     setTimer(gameMode === 'speed' ? 60 : 0);
   }, [gameMode]);
@@ -137,7 +138,7 @@ function App() {
     }
     setSelectedPlayer(storedSolution);
 
-    // 2) Hydrate game state for today, if any, and apply lock rules
+    // 2) Hydrate game state for today, if any, and apply lock rules + TIMER persistence
     const gKey = gameKeyFor(rotationKey);
     const locked = isLocked(rotationKey);
 
@@ -151,6 +152,18 @@ function App() {
         if (typeof s.message === 'string') setMessage(s.message);
         if (typeof s.triesTaken === 'number') setTriesTaken(s.triesTaken);
         if (Array.isArray(s.guessedPlayers)) setGuessedPlayers(s.guessedPlayers);
+        if (s.gameMode) setGameMode(s.gameMode);
+
+        // ---- TIMER: carry forward based on time away ----
+        if (typeof s.timer === 'number') {
+          const savedAt = s.timerSavedAt ?? Date.now();
+          const delta = Math.floor((Date.now() - savedAt) / 1000);
+          let t = s.timer;
+          if (!(s.gameOver || locked)) {
+            t = (s.gameMode === 'speed') ? Math.max(0, t - delta) : t + delta;
+          }
+          setTimer(t);
+        }
 
         if (locked || s.gameOver) {
           setShowActualPortrait(true);
@@ -173,7 +186,7 @@ function App() {
       resetGameState();
     }
 
-    // 3) Start timer
+    // 3) Start timer loop
     startTimer();
 
     // 4) Optionally purge old saves to keep storage tidy
@@ -184,7 +197,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey]);
 
-  // Persist today's game state whenever it changes
+  // Persist today's game state whenever it changes (INCLUDES TIMER)
   useEffect(() => {
     if (!rotationKey) return;
     const gKey = gameKeyFor(rotationKey);
@@ -195,11 +208,24 @@ function App() {
       message,
       triesTaken,
       guessedPlayers,
+      gameMode,           // NEW
+      timer,              // NEW
+      timerSavedAt: Date.now(), // NEW
       version: 1,
       savedAt: Date.now(),
     };
     try { localStorage.setItem(gKey, JSON.stringify(gameState)); } catch {}
-  }, [rotationKey, guessesLeft, previousGuesses, gameOver, message, triesTaken, guessedPlayers]);
+  }, [
+    rotationKey,
+    guessesLeft,
+    previousGuesses,
+    gameOver,
+    message,
+    triesTaken,
+    guessedPlayers,
+    timer,        // NEW
+    gameMode,     // NEW
+  ]);
 
   const resetGameState = () => {
     // Guard: don't reset if locked and not in debug
@@ -386,6 +412,7 @@ function App() {
     return `${hours}:${minutes}:${seconds}`;
   };
 
+  // Original helper (still used by reset/hydrate); interval management handled by effects below
   const startTimer = () => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
@@ -488,23 +515,26 @@ function App() {
     }
   };
 
-  // Restart the visible timer whenever solution changes or mode flips
+  // === Timer loop: do NOT reset on refresh; pause when game over ===
   useEffect(() => {
-    if (selectedPlayer) {
-      clearInterval(intervalRef.current);
-      setTimer(gameMode === 'speed' ? 60 : 0);
-      intervalRef.current = setInterval(() => {
-        setTimer(prev => {
-          if (gameMode === 'speed') {
-            return prev > 0 ? prev - 1 : 0;
-          } else {
-            return prev + 1;
-          }
-        });
-      }, 1000);
-    }
+    clearInterval(intervalRef.current);
+
+    // If game is over (or locked), do not run the clock
+    if (!selectedPlayer || gameOver) return;
+
+    intervalRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (gameMode === 'speed') return prev > 0 ? prev - 1 : 0;
+        return prev + 1;
+      });
+    }, 1000);
+
     return () => clearInterval(intervalRef.current);
-  }, [selectedPlayer, gameMode]);
+  }, [selectedPlayer, gameMode, gameOver]);
+
+  useEffect(() => {
+    if (gameOver) clearInterval(intervalRef.current);
+  }, [gameOver]);
 
   return (
     <div className="App">
