@@ -78,10 +78,11 @@ const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) 
 // Select the solution deterministically from rotationKey (same all day, same device)
 function pickSolutionFor(rotationKey) {
   const seed = xmur3(rotationKey)();
-  connect:
   const rand = mulberry32(seed);
   const idx = Math.floor(rand() * playersStable.length);
   return playersStable[idx];
+}
+
 }
 
 // ============================================================================
