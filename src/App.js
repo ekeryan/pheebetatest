@@ -16,7 +16,7 @@ const teamCodeToFile = (code) => {
 };
 // --------------------------------------------------------------
 
-// ====================== NEW: Daily rotation & persistence ======================
+// ====================== Daily rotation & persistence ======================
 
 // Toggle quick-test mode via URL (?debug=1) or localStorage flag
 const DEBUG =
@@ -31,7 +31,6 @@ function getCTParts(d = new Date()) {
     hour: '2-digit', minute: '2-digit'
   });
   const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
-  // { year:'2025', month:'08', day:'09', hour:'05', minute:'07', ... }
   return parts;
 }
 
@@ -70,8 +69,11 @@ const playersStable = [...players].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
 // Storage helpers
 const STORAGE_PREFIX = 'phee:v1';
-const gameKeyFor = (rotationKey) => `${STORAGE_PREFIX}:game:${rotationKey}`;   // state per day
+const gameKeyFor = (rotationKey) => `${STORAGE_PREFIX}:game:${rotationKey}`;       // state per day
 const solutionKeyFor = (rotationKey) => `${STORAGE_PREFIX}:solution:${rotationKey}`; // selected player per day
+const lockKeyFor = (rotationKey) => `${STORAGE_PREFIX}:locked:${rotationKey}`;     // per-day lock
+
+const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) === '1';
 
 // Select the solution deterministically from rotationKey (same all day, same device)
 function pickSolutionFor(rotationKey) {
@@ -103,13 +105,13 @@ function App() {
   const [gameMode, setGameMode] = useState('normal'); // 'normal' or 'speed'
   const intervalRef = useRef(null);
 
-  // ===== NEW: compute rotationKey (changes at midnight CT; every minute in DEBUG) =====
+  // compute rotationKey (changes at midnight CT; every minute in DEBUG)
   const [rotationKey, setRotationKey] = useState(getRotationKey());
   useEffect(() => {
     const tick = setInterval(() => {
       const nextKey = getRotationKey();
       setRotationKey((prev) => (prev === nextKey ? prev : nextKey));
-    }, DEBUG ? 5_000 : 60_000); // poll modestly; DEBUG faster for dev
+    }, DEBUG ? 5_000 : 60_000);
     return () => clearInterval(tick);
   }, []);
 
@@ -118,7 +120,7 @@ function App() {
     setTimer(gameMode === 'speed' ? 60 : 0);
   }, [gameMode]);
 
-  // ===== REPLACED: initial load / daily solution select / hydrate state =====
+  // initial load / daily solution select / hydrate state
   useEffect(() => {
     if (!rotationKey) return;
 
@@ -135,22 +137,37 @@ function App() {
     }
     setSelectedPlayer(storedSolution);
 
-    // 2) Hydrate game state for today, if any
+    // 2) Hydrate game state for today, if any, and apply lock rules
     const gKey = gameKeyFor(rotationKey);
+    const locked = isLocked(rotationKey);
+
     try {
       const raw = localStorage.getItem(gKey);
       if (raw) {
         const s = JSON.parse(raw);
         if (typeof s.guessesLeft === 'number') setGuessesLeft(s.guessesLeft);
         if (Array.isArray(s.previousGuesses)) setPreviousGuesses(s.previousGuesses);
-        if (typeof s.gameOver === 'boolean') setGameOver(s.gameOver);
+        if (typeof s.gameOver === 'boolean') setGameOver(s.gameOver || locked);
         if (typeof s.message === 'string') setMessage(s.message);
         if (typeof s.triesTaken === 'number') setTriesTaken(s.triesTaken);
         if (Array.isArray(s.guessedPlayers)) setGuessedPlayers(s.guessedPlayers);
-        if (s.gameOver) setShowActualPortrait(true);
+
+        if (locked || s.gameOver) {
+          setShowActualPortrait(true);
+          setShowPortraitModal(false);      // don't pop modal again after refresh
+          setPortraitModalDismissed(true);  // keep the revealed image inline
+        }
       } else {
-        // fresh day: reset state
-        resetGameState();
+        if (locked) {
+          // Locked but no saved state (edge case): show reveal + block input
+          setGameOver(true);
+          setShowActualPortrait(true);
+          setShowPortraitModal(false);
+          setPortraitModalDismissed(true);
+          setMessage('✅ Already completed for today.');
+        } else {
+          resetGameState();
+        }
       }
     } catch {
       resetGameState();
@@ -167,7 +184,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey]);
 
-  // ===== Persist today's game state whenever it changes =====
+  // Persist today's game state whenever it changes
   useEffect(() => {
     if (!rotationKey) return;
     const gKey = gameKeyFor(rotationKey);
@@ -185,6 +202,9 @@ function App() {
   }, [rotationKey, guessesLeft, previousGuesses, gameOver, message, triesTaken, guessedPlayers]);
 
   const resetGameState = () => {
+    // Guard: don't reset if locked and not in debug
+    if (isLocked(rotationKey) && !DEBUG) return;
+
     setGuessesLeft(8);
     setPreviousGuesses(Array(8).fill(null));
     setGameOver(false);
@@ -200,7 +220,7 @@ function App() {
     startTimer();
   };
 
-  // (kept) Capitalize helper
+  // Capitalize helper
   const capitalizeName = (name) => {
     return name.split(' ').map(part => {
       return part.split('-').map(subPart => {
@@ -214,7 +234,7 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedPlayer || guessesLeft <= 0) return;
+    if (!selectedPlayer || guessesLeft <= 0 || gameOver) return; // prevent guesses after lock
 
     const correctedPlayerName = capitalizeName(playerName);
     if (guessedPlayers.includes(correctedPlayerName)) {
@@ -333,7 +353,7 @@ function App() {
             : 'arrow-down',
     };
 
-    // Number feedback (FIXED: compare against parsed selectedNumber)
+    // Number feedback
     const guessedNumber = parseInt(guessedPlayer.number, 10);
     const selectedNumber = parseInt(selectedPlayer.number, 10);
     const numberDiff = Math.abs(guessedNumber - selectedNumber);
@@ -387,7 +407,9 @@ function App() {
   }, [timer, gameMode, gameOver, selectedPlayer]);
 
   const handlePlayAgain = () => {
-    // Same-day: let them replay; keeps same solution/player
+    // In normal mode we lock the day; allow replay only in debug mode
+    if (!DEBUG) return;
+    try { localStorage.removeItem(lockKeyFor(rotationKey)); } catch {}
     resetGameState();
   };
 
@@ -401,14 +423,19 @@ function App() {
     setShowSuggestions(false);
   };
 
-  const handleGameEnd = (message) => {
+  // Lock when game ends
+  const handleGameEnd = (msg) => {
     clearInterval(intervalRef.current);
-    setMessage(message);
+    setMessage(msg);
     setGameOver(true);
     setShowActualPortrait(true);
+
+    // Lock today so refresh can't re-guess
+    try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
+
+    // Show the modal once now; after refresh keep it dismissed
     setShowPortraitModal(true);
     setPortraitModalDismissed(false);
-    // optional: stamp end time; persisted via the effect
   };
 
   const getEmoji = (feedback, type) => {
@@ -617,7 +644,14 @@ function App() {
             {gameOver && (
               <div>
                 <p>{guessesLeft === 0 ? `Game Over! The correct player was ${selectedPlayer?.name}.` : message}</p>
-                <button onClick={handlePlayAgain}>Play Again</button>
+
+                {/* Only allow replay in debug mode; normal mode stays locked until next rotation */}
+                {DEBUG ? (
+                  <button onClick={handlePlayAgain}>Play Again (debug)</button>
+                ) : (
+                  <button disabled title="Come back after midnight CT for a new player">Play Again</button>
+                )}
+
                 <button onClick={handleShare} style={{ marginLeft: 8 }}>Share Result</button>
               </div>
             )}
