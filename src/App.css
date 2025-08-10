@@ -826,3 +826,51 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(26px);
 }
+/* ---------- Mobile: compact previous guesses ---------- */
+.mobile-pill-row { display: none; }
+
+@media (max-width: 520px) {
+  /* Hide the wide table header on phones */
+  .info-item-wrapper.title { display: none; }
+
+  /* Turn each guess into a card */
+  .info-item-wrapper.guess {
+    display: block;
+    border: 1px solid #e4e4e4;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+
+  /* Only show the name cell from the table row */
+  .info-item-wrapper.guess .info-item { display: none; }
+  .info-item-wrapper.guess .name-cell {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  /* Show compact pill row with color codes */
+  .mobile-pill-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pill {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    user-select: none;
+  }
+  /* reuse your correctness classes for color */
+  .pill.correct   { background: #2bbd54; color: #fff; }
+  .pill.close     { background: #ffd666; color: #111; }
+  .pill.incorrect { background: #2f2f2f; color: #fff; }
+}

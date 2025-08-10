@@ -83,8 +83,6 @@ function pickSolutionFor(rotationKey) {
   return playersStable[idx];
 }
 
-}
-
 // ============================================================================
 
 function App() {
@@ -831,6 +829,37 @@ function App() {
                       </span>
                     )}
                   </div>
+
+                  {/* ===== Mobile compact pills (visible only on small screens via CSS) ===== */}
+                  {prevGuess && (
+                    <div className="mobile-pill-row">
+                      <span
+                        className={`pill ${getFeedbackClassTeam(prevGuess.feedback.team)}`}
+                        title={`Team: ${prevGuess.feedback.team}`}
+                      >Tm</span>
+                      <span
+                        className={`pill ${getFeedbackClassSimple(prevGuess.feedback.position)}`}
+                        title={`Pos: ${prevGuess.feedback.positionText}`}
+                      >Pos</span>
+                      <span
+                        className={`pill ${getFeedbackClassSimple(prevGuess.feedback.conf)}`}
+                        title={`Conf: ${prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : ''}`}
+                      >Conf</span>
+                      <span
+                        className={`pill ${getFeedbackClass(prevGuess.feedback.height)}`}
+                        title={`Ht: ${prevGuess.feedback.height.value}`}
+                      >Ht</span>
+                      <span
+                        className={`pill ${getFeedbackClass(prevGuess.feedback.age)}`}
+                        title={`Age: ${prevGuess.feedback.age.value}`}
+                      >Age</span>
+                      <span
+                        className={`pill ${getFeedbackClass(prevGuess.feedback.numberMatch)}`}
+                        title={`#: ${prevGuess.feedback.numberMatch.value}`}
+                      >#</span>
+                    </div>
+                  )}
+                  {/* ====================================================================== */}
                 </div>
               ))}
             </div>
