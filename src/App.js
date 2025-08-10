@@ -836,27 +836,39 @@ function App() {
                       <span
                         className={`pill ${getFeedbackClassTeam(prevGuess.feedback.team)}`}
                         title={`Team: ${prevGuess.feedback.team}`}
-                      >Tm</span>
+                      >
+                        {prevGuess.feedback.team?.split(' ')[0] || ''}
+                      </span>
                       <span
                         className={`pill ${getFeedbackClassSimple(prevGuess.feedback.position)}`}
                         title={`Pos: ${prevGuess.feedback.positionText}`}
-                      >Pos</span>
+                      >
+                        {prevGuess.feedback.positionText || ''}
+                      </span>
                       <span
                         className={`pill ${getFeedbackClassSimple(prevGuess.feedback.conf)}`}
                         title={`Conf: ${prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : ''}`}
-                      >Conf</span>
+                      >
+                        {prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : ''}
+                      </span>
                       <span
                         className={`pill ${getFeedbackClass(prevGuess.feedback.height)}`}
                         title={`Ht: ${prevGuess.feedback.height.value}`}
-                      >Ht</span>
+                      >
+                        {prevGuess.feedback.height?.value ?? ''}
+                      </span>
                       <span
                         className={`pill ${getFeedbackClass(prevGuess.feedback.age)}`}
                         title={`Age: ${prevGuess.feedback.age.value}`}
-                      >Age</span>
+                      >
+                        {prevGuess.feedback.age?.value ?? ''}
+                      </span>
                       <span
                         className={`pill ${getFeedbackClass(prevGuess.feedback.numberMatch)}`}
                         title={`#: ${prevGuess.feedback.numberMatch.value}`}
-                      >#</span>
+                      >
+                        {prevGuess.feedback.numberMatch?.value ?? ''}
+                      </span>
                     </div>
                   )}
                   {/* ====================================================================== */}
