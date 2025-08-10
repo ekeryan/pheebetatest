@@ -37,7 +37,6 @@ header {
   text-align: center;
   z-index: 1000;
   font-family: 'Chakra Petch', serif;
-  /* Remove padding here */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +172,7 @@ button:disabled {
   display: inline-block;
   padding-bottom: 2px;
   margin-bottom: 12px;
-  color: #FFFFF;
+  color: #000000; /* fixed invalid hex */
   font-size: 1.15em;
 }
 
@@ -198,10 +197,6 @@ button:disabled {
 
 .info-box:hover {
   box-shadow: 0 6px 24px rgba(255, 89, 16, 0.13);
-  /* Remove or comment out the transform property: */
-  /* transform: translateY(-2px) scale(1.01); */
-  /* Optionally, just use a slight translate for a subtle lift: */
-  /* transform: translateY(-2px); */
 }
 
 .info-box-inner {
@@ -216,11 +211,11 @@ button:disabled {
 
 .info-item-wrapper {
   display: flex;
-  justify-content: space-between; /* Ensure items are evenly spaced */
+  justify-content: space-between;
   gap: 0;
   margin-bottom: 10px;
   align-items: stretch;
-  height: 60px; /* or your preferred row height */
+  height: 60px;
   min-height: 60px;
   position: relative;
 }
@@ -234,21 +229,21 @@ button:disabled {
 }
 
 .title .info-label {
-  width: 100px; /* Increase width for better fit */
+  width: 100px;
   text-align: center;
   color: #000000;
   font-family: 'Chakra Petch', serif;
 }
 
 .guess {
-  border: 2px solid #d1d5db; /* light gray, try #b0b3b8 or #c0c0c0 for a bit darker */
+  border: 2px solid #d1d5db;
   border-radius: 8px;
   padding-top: 0px;
   display: flex;
   justify-content: space-between;
   gap: 0;
   align-items: stretch;
-  height: 60px; /* or your preferred row height */
+  height: 60px;
   min-height: 60px;
   position: relative;
   width: 100%;
@@ -256,7 +251,7 @@ button:disabled {
   overflow: hidden;
   font-family: 'Chakra Petch', serif;
   animation: guessFadeIn 0.4s;
-  box-shadow: 0 4px 16px rgba(34, 34, 34, 0.10); /* subtle shadow with dark tone */
+  box-shadow: 0 4px 16px rgba(34, 34, 34, 0.10);
   transition: background 0.2s, box-shadow 0.2s, border 0.2s;
 }
 
@@ -264,7 +259,7 @@ button:disabled {
   flex: 1 1 0;
   min-width: 0;
   text-align: center;
-  padding: 0; /* Remove extra padding */
+  padding: 0;
   color: #222;
   background: white;
   border: none;
@@ -273,9 +268,9 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;           /* <-- Add this */
-  width: 100%;            /* <-- Add this */
-  box-sizing: border-box; /* <-- Add this */
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -284,18 +279,9 @@ button:disabled {
 }
 
 /* Feedback backgrounds */
-.guess .info-item.correct {
-  background: #4caf50;
-  color: #fff;
-}
-.guess .info-item.close {
-  background: #ffd600;
-  color: #222;
-}
-.guess .info-item.incorrect {
-  background: #e0e0e0;
-  color: #222;
-}
+.guess .info-item.correct { background: #4caf50; color: #fff; }
+.guess .info-item.close   { background: #ffd600; color: #222; }
+.guess .info-item.incorrect { background: #e0e0e0; color: #222; }
 
 /* Name cell always white */
 .guess .info-item.name-cell {
@@ -339,9 +325,6 @@ button:disabled {
 
 .guess:hover {
   background-color: #fff2e6;
-  /* Optionally, you can make the border a bit thicker or change color on hover for extra feedback */
-  /* border: 2.5px solid #FF5910; */
-  /* box-shadow: 0 6px 24px rgba(255, 89, 16, 0.18); */
 }
 
 .guess:not(:last-child) {
@@ -366,54 +349,25 @@ button:disabled {
 }
 
 /* Feedback colors */
-.correct {
-  color: green;
-}
-
-.incorrect {
-  color: red;
-}
-
-.yellow {
-  color: orange;
-}
+.correct { color: green; }
+.incorrect { color: red; }
+.yellow { color: orange; }
 
 /* Arrow animation */
 @keyframes moveUpDown {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px); /* Adjust this value to change how far up the emoji moves */
-  }
-  100% {
-    transform: translateY(0);
-  }
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
 }
 
 @keyframes moveDownUp {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(5px); /* Adjust this value to change how far down the emoji moves */
-  }
-  100% {
-    transform: translateY(0);
-  }
+  0% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+  100% { transform: translateY(0); }
 }
 
-.arrow-up {
-  display: inline-block;
-  animation: moveUpDown 2s infinite; /* Increase the duration to slow down the animation */
-  margin-left: 5px; /* Ensure the arrow stays on the right side */
-}
-
-.arrow-down {
-  display: inline-block;
-  animation: moveDownUp 2s infinite; /* Increase the duration to slow down the animation */
-  margin-left: 5px; /* Ensure the arrow stays on the right side */
-}
+.arrow-up   { display: inline-block; animation: moveUpDown 2s infinite; margin-left: 5px; }
+.arrow-down { display: inline-block; animation: moveDownUp 2s infinite; margin-left: 5px; }
 
 /* Original CSS */
 .silhouette {
@@ -421,9 +375,9 @@ button:disabled {
   height: 254px;
   display: block;
   margin-top: 10px;
-  border: 2px solid black; /* Add border around silhouette */
-  border-radius: 0; /* Remove border-radius to make it a straight square box */
-  background-color: #ebebeb; /* Change this to your custom color */
+  border: 2px solid black;
+  border-radius: 0;
+  background-color: #ebebeb;
 }
 
 .silhouette-container {
@@ -439,17 +393,12 @@ button:disabled {
   width: 310px;
   height: 254px;
   object-fit: cover;
-  border: 2px solid black; /* Add border around actual */
-  border-radius: 0; /* Remove border-radius to make it a straight square box */
+  border: 2px solid black;
+  border-radius: 0;
 }
 
-.actual {
-  background-color: #ebebeb; /* Change this to your custom color */
-}
-
-.silhouette.show {
-  opacity: 1;
-}
+.actual { background-color: #ebebeb; }
+.silhouette.show { opacity: 1; }
 
 .silhouette-button {
   background-color: #FFD700;
@@ -463,30 +412,19 @@ button:disabled {
   margin-bottom: 20px;
   font-family: 'Chakra Petch', serif;
 }
-
-.silhouette-button:hover {
-  background-color: #FFCC00;
-}
+.silhouette-button:hover { background-color: #FFCC00; }
 
 /* Silhouette Button Disabled */
-.silhouette-button:disabled {
-  background-color: #ccc; 
-  cursor: not-allowed; 
-}
+.silhouette-button:disabled { background-color: #ccc; cursor: not-allowed; }
 
 /* Silhouette Button Disabled in the container */
-.silhouette-container button:disabled {
-  background-color: #ccc; 
-  cursor: not-allowed; 
-  color: #666; 
-}
+.silhouette-container button:disabled { background-color: #ccc; cursor: not-allowed; color: #666; }
 
 /* Suggestions Dropdown */
 .suggestions {
   position: absolute;
   top: 60px;
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   width: 100%;
   min-width: 0;
   background: #fff;
@@ -499,22 +437,13 @@ button:disabled {
   opacity: 0;
   transform: translateY(-10px) scale(0.98);
   pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), 
-              transform 0.25s cubic-bezier(0.4,0,0.2,1);
-  box-sizing: border-box; /* Ensures width includes border/padding */
+  transition: opacity 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-sizing: border-box;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
 }
-
-.suggestions.open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.suggestions::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
+.suggestions.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.suggestions::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
 
 .suggestion {
   padding: 12px 18px;
@@ -525,17 +454,13 @@ button:disabled {
   background: transparent;
   transition: background 0.18s, color 0.18s, transform 0.15s;
 }
-
 .suggestion:hover, .suggestion:focus {
   background-color: #ffe5d0;
   color: #FF5910;
   transform: scale(1.03);
   outline: none;
 }
-
-.suggestion:not(:last-child) {
-  border-bottom: 1px solid #f5ecdf;
-}
+.suggestion:not(:last-child) { border-bottom: 1px solid #f5ecdf; }
 
 .help-icon {
   position: fixed;
@@ -556,10 +481,7 @@ button:disabled {
   cursor: pointer;
   transition: background 0.2s;
 }
-
-.help-icon:hover {
-  background: #f0f0f0;
-}
+.help-icon:hover { background: #f0f0f0; }
 
 .help-modal-overlay {
   position: fixed;
@@ -570,7 +492,6 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
-
 .help-modal {
   background: #fff;
   border-radius: 10px;
@@ -581,42 +502,18 @@ button:disabled {
   position: relative;
   animation: fadeIn 0.2s;
 }
-
-.help-modal h2 {
-  margin-top: 0;
-  font-size: 1.3em;
-  margin-bottom: 12px;
-}
-
-.help-modal ul {
-  padding-left: 18px;
-  margin-bottom: 14px;
-}
-
-.help-modal p {
-  font-size: 0.98em;
-  margin: 0;
-}
-
+.help-modal h2 { margin-top: 0; font-size: 1.3em; margin-bottom: 12px; }
+.help-modal ul { padding-left: 18px; margin-bottom: 14px; }
+.help-modal p  { font-size: 0.98em; margin: 0; }
 .help-modal-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #888;
-  transition: color 0.2s;
+  position: absolute; top: 8px; right: 12px;
+  background: none; border: none; font-size: 22px; cursor: pointer; color: #888; transition: color 0.2s;
 }
-
-.help-modal-close:hover {
-  color: #222;
-}
+.help-modal-close:hover { color: #222; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.97);}
-  to { opacity: 1; transform: scale(1);}
+  to   { opacity: 1; transform: scale(1);}
 }
 
 /* Health bar for guesses left */
@@ -630,7 +527,6 @@ button:disabled {
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
-
 .guesses-health-bar-inner {
   height: 100%;
   transition: width 0.3s, background 0.3s;
@@ -640,60 +536,32 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
-
 .guesses-bar-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
+  position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  color: #fff;
-  font-weight: bold;
-  font-size: 1.1em;
-  letter-spacing: 1px;
+  color: #fff; font-weight: bold; font-size: 1.1em; letter-spacing: 1px;
   text-shadow: 0 1px 4px #000, 0 0 2px #FF5910;
-  pointer-events: none;
-  user-select: none;
+  pointer-events: none; user-select: none;
 }
 
 @keyframes healthBarGlow {
-  0% {
-    box-shadow: 0 0 8px 2px #FF5910, 0 0 0px 0px #fff;
-  }
-  50% {
-    box-shadow: 0 0 24px 8px #FF5910, 0 0 8px 2px #fff;
-  }
-  100% {
-    box-shadow: 0 0 8px 2px #FF5910, 0 0 0px 0px #fff;
-  }
+  0% { box-shadow: 0 0 8px 2px #FF5910, 0 0 0px 0px #fff; }
+  50% { box-shadow: 0 0 24px 8px #FF5910, 0 0 8px 2px #fff; }
+  100% { box-shadow: 0 0 8px 2px #FF5910, 0 0 0px 0px #fff; }
 }
-
-.guesses-health-bar-inner.glow {
-  animation: healthBarGlow 1s infinite;
-}
+.guesses-health-bar-inner.glow { animation: healthBarGlow 1s infinite; }
 
 @keyframes fadeInMain {
   from { opacity: 0; transform: translateY(16px);}
-  to { opacity: 1; transform: translateY(0);}
+  to   { opacity: 1; transform: translateY(0);}
 }
+.fade-in-main { animation: fadeInMain 0.6s cubic-bezier(0.4,0,0.2,1); }
 
-.fade-in-main {
-  animation: fadeInMain 0.6s cubic-bezier(0.4,0,0.2,1);
-}
+@keyframes guessFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.guess.correct-row   { background-color: #eaffea !important; border-left: 4px solid #4caf50; }
+.guess.incorrect-row { background-color: #fff4f0; }
 
-@keyframes guessFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.guess.correct-row {
-  background-color: #eaffea !important;
-  border-left: 4px solid #4caf50;
-}
-
-.guess.incorrect-row {
-  background-color: #fff4f0;
-}
-
+/* -------- Tablet-ish tweaks -------- */
 @media (max-width: 600px) {
   .info-box {
     min-width: 0;
@@ -704,173 +572,85 @@ button:disabled {
   }
   .info-item-wrapper,
   .guess {
-    flex-wrap: nowrap; /* Prevent wrapping */
+    flex-wrap: nowrap;
     font-size: 0.95em;
   }
   .guess .info-item, .title .info-label {
-    min-width: 70px; /* Slightly wider for clarity */
+    min-width: 70px;
     width: auto;
     font-size: 0.95em;
     padding: 2px;
     word-break: break-word;
   }
-  .guess .info-item {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 0;
-  }
-  .guess .info-item span {
-    margin-left: 0 !important;
-    margin-top: 2px;
-    display: block;
-  }
-  .help-icon {
-    position: absolute;
-    top: 70px; /* Place it below the header on mobile */
-    right: 12px;
-  }
+  .guess .info-item { flex-direction: column; align-items: center; justify-content: center; padding: 2px 0; }
+  .guess .info-item span { margin-left: 0 !important; margin-top: 2px; display: block; }
+  .help-icon { position: absolute; top: 70px; right: 12px; }
 }
 
-.search-container {
-  width: auto;
-  max-width: 600px;
-  position: relative;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.feedback-box {
-  display: inline-block;
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  margin-left: 6px;
-  vertical-align: middle;
-  background: #e0e0e0; /* default/incorrect */
-  border: 1.5px solid #b0b3b8;
-}
-
-.feedback-box.correct {
-  background: #4caf50;
-  border-color: #388e3c;
-}
-
-.feedback-box.close {
-  background: #ffd600;
-  border-color: #bfa600;
-}
-
-.feedback-box.incorrect {
-  background: #e0e0e0;
-  border-color: #b0b3b8;
-}
-
-.mode-switch-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  gap: 12px;
-  font-family: 'Chakra Petch', serif;
-  font-size: 1.1em;
-}
-
-.mode-switch-container .active {
-  color: #FF5910;
-  font-weight: bold;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 54px;
-  height: 28px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-}
-
-input:checked + .slider {
-  background-color: #FF5910;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-/* ---------- Mobile: compact previous guesses ---------- */
+/* ---------- Mobile: compact previous guesses (iOS safe) ---------- */
 .mobile-pill-row { display: none; }
 
 @media (max-width: 520px) {
-  /* Hide the wide table header on phones */
+  /* Stop desktop table sizing */
+  .info-box-inner { display: block; min-width: 0; }
+  .info-box { overflow: visible; }
+
   .info-item-wrapper.title { display: none; }
 
-  /* Turn each guess into a card */
-  .info-item-wrapper.guess {
-    display: block;
+  /* Make each row a card; override fixed heights */
+  .info-item-wrapper.guess,
+  .guess {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
     border: 1px solid #e4e4e4;
     border-radius: 12px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
+    padding: 10px 12px;
+    margin: 10px 8px;
     background: #fff;
   }
 
-  /* Only show the name cell from the table row */
-  .info-item-wrapper.guess .info-item { display: none; }
-  .info-item-wrapper.guess .name-cell {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
+  /* Only show player name from the table cells */
+  .info-item-wrapper.guess .info-item,
+  .guess .info-item { display: none; }
+  .info-item-wrapper.guess .name-cell,
+  .guess .name-cell {
+    display: block !important;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+    text-align: left;
   }
 
-  /* Show compact pill row with color codes */
+  /* Compact colored pills */
   .mobile-pill-row {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+    display: flex !important;
     flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
   }
   .pill {
-    width: 30px;
-    height: 30px;
+    min-width: 34px;
+    height: 28px;
+    padding: 0 8px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    user-select: none;
   }
-  /* reuse your correctness classes for color */
   .pill.correct   { background: #2bbd54; color: #fff; }
   .pill.close     { background: #ffd666; color: #111; }
   .pill.incorrect { background: #2f2f2f; color: #fff; }
 }
+
+/* Media safety for images/videos on narrow screens */
+img.actual, img.silhouette, video.jumpshot {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Keep suggestions above other elements */
+.suggestions { z-index: 2000; }
