@@ -600,3 +600,17 @@ button:disabled {
 }
 input:checked + .slider { background-color: #FF5910; }
 input:checked + .slider:before { transform: translateX(26px); }
+/* Remove bold container border on phones */
+@media (max-width: 520px) {
+  .info-box {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .info-box-inner {
+    min-width: 0;
+    padding: 0 8px 12px;
+  }
+}
