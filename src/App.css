@@ -113,13 +113,8 @@ button {
   margin-top: 10px;
   font-family: 'Chakra Petch', serif;
 }
-
 button:hover { background-color: #FFCC00; }
-
-button:active {
-  transform: scale(0.96);
-  transition: transform 0.1s;
-}
+button:active { transform: scale(0.96); transition: transform 0.1s; }
 
 /* Disabled Button */
 button:disabled {
@@ -174,7 +169,7 @@ button:disabled {
 
 .game-content { max-height: calc(100vh - 100px); overflow-y: auto; }
 
-/* Scroll container for the table */
+/* Scroll container for the table (desktop default) */
 .info-box {
   margin-top: 10px;
   padding: 10px;
@@ -185,8 +180,8 @@ button:disabled {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   transition: box-shadow 0.2s, transform 0.2s;
   background: linear-gradient(135deg, #fff8f3 80%, #ffe5d0 100%);
-  overflow-x: auto;                 /* key for mobile */
-  -webkit-overflow-scrolling: touch;/* smooth iOS scroll */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   position: relative;
 }
 .info-box-inner {
@@ -195,7 +190,7 @@ button:disabled {
   min-width: calc(
     var(--col-name) + var(--col-team) + var(--col-pos) +
     var(--col-conf) + var(--col-ht) + var(--col-age) + var(--col-num)
-  ); /* keep table wide on small screens */
+  );
 }
 .info-box.scrolled { box-shadow: 0 8px 24px rgba(255,89,16,0.10); }
 
@@ -281,8 +276,8 @@ button:disabled {
 .guess .info-item:not(:last-child) { border-right: 1.5px dotted #b0b3b8; }
 
 /* Feedback backgrounds */
-.guess .info-item.correct { background: #4caf50; color: #fff; }
-.guess .info-item.close   { background: #ffd600; color: #222; }
+.guess .info-item.correct   { background: #4caf50; color: #fff; }
+.guess .info-item.close     { background: #ffd600; color: #222; }
 .guess .info-item.incorrect { background: #e0e0e0; color: #222; }
 
 /* Name cell always white */
@@ -303,8 +298,8 @@ button:disabled {
   border: 1.5px solid #b0b3b8;
   transition: background 0.2s, border 0.2s, color 0.2s;
 }
-.guess .info-item.attribute-cell.correct { background: #4caf50; border-color: #388e3c; color: #fff; }
-.guess .info-item.attribute-cell.close   { background: #ffd600; border-color: #bfa600; color: #222; }
+.guess .info-item.attribute-cell.correct   { background: #4caf50; border-color: #388e3c; color: #fff; }
+.guess .info-item.attribute-cell.close     { background: #ffd600; border-color: #bfa600; color: #222; }
 .guess .info-item.attribute-cell.incorrect { background: #e0e0e0; border-color: #b0b3b8; color: #222; }
 
 .guess:hover { background-color: #fff2e6; }
@@ -504,28 +499,69 @@ button:disabled {
 .guess.correct-row { background-color: #eaffea !important; border-left: 4px solid #4caf50; }
 .guess.incorrect-row { background-color: #fff4f0; }
 
-/* ---------- Mobile tweaks: keep desktop layout; just tighter ---------- */
+/* ============================================================= */
+/*           MOBILE: Poeltl-style grid, no horizontal scroll     */
+/* ============================================================= */
 @media (max-width: 520px){
-  :root{
-    --col-name: 140px;
-    --col-team: 72px;
-    --col-pos: 64px;
-    --col-conf: 74px;
-    --col-ht: 70px;
-    --col-age: 60px;
-    --col-num: 54px;
-    --row-h: 52px;
+  /* The table container should not force horizontal scroll on phones */
+  .info-box { padding: 6px; overflow-x: visible; }
+  .info-box-inner { min-width: 0; }
+
+  /* Hide the desktop header row */
+  .info-item-wrapper.title { display: none; }
+
+  /* Show a compact mobile header (labels above first row) */
+  .mobile-grid-head {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin: 4px 8px 10px;
+    font-size: 12px;
+    color: #555;
   }
 
-  .info-box { padding: 6px; }
-  .guess .info-item, .title .info-label {
-    font-size: 0.95em;
-    padding: 0 4px;
+  /* Turn each guess into a 2-row grid:
+     Row 1: name (spans all)
+     Row 2: team / pos / conf / ht / age / num  */
+  .info-item-wrapper.guess{
+    display: grid;
+    grid-template-areas:
+      "name name name name name name"
+      "team pos conf ht age num";
+    grid-template-columns: repeat(6, 1fr);
+    row-gap: 6px;
+    column-gap: 6px;
+    padding: 8px 10px;
+    height: auto;
+    min-height: 0;
+    border-radius: 12px;
   }
+
+  /* Remove vertical separators from desktop layout */
+  .info-item { border-right: none !important; font-size: 0.95em; padding: 8px 0; }
+
+  .name-cell { grid-area: name; justify-content: flex-start; font-weight: 700; background:#fff !important; }
+  .team-cell { grid-area: team; }
+  .pos-cell  { grid-area: pos; }
+  .conf-cell { grid-area: conf; }
+  .ht-cell   { grid-area: ht; }
+  .age-cell  { grid-area: age; }
+  .num-cell  { grid-area: num; }
+
+  .team-cell img { height: 18px !important; margin-bottom: 2px !important; }
+
+  /* Mobile color palette stays readable */
+  .guess .info-item.correct   { background: #2bbd54; color:#fff; }
+  .guess .info-item.close     { background: #ffd666; color:#111; }
+  .guess .info-item.incorrect { background: #2f2f2f; color:#fff; }
+
+  .guess:not(:last-child){ margin-bottom: 8px; }
+
+  /* Reposition help icon so it doesn’t overlap */
   .help-icon { position: absolute; top: 70px; right: 12px; }
 }
 
-/* no mobile-pill layout anymore */
+/* we don’t use the old mobile-pill variant anymore */
 .mobile-pill-row{ display:none !important; }
 
 .search-container {

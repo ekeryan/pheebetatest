@@ -11,7 +11,7 @@ const slugify = (name) => (name || '').toLowerCase().replace(/[^a-z]/g, '');
 // map team code -> filename (avoid Windows reserved "con")
 const teamCodeToFile = (code) => {
   const c = (code || '').toLowerCase();
-  if (c === 'con') return 'ctsun'; // <- whatever you renamed the file to
+  if (c === 'con') return 'ctsun';
   return c;
 };
 // --------------------------------------------------------------
@@ -115,7 +115,7 @@ function App() {
     return () => clearInterval(tick);
   }, []);
 
-  // (kept) Set initial timer based on mode; hydration will overwrite if saved state exists
+  // initial timer based on mode
   useEffect(() => {
     setTimer(gameMode === 'speed' ? 60 : 0);
   }, [gameMode]);
@@ -124,7 +124,7 @@ function App() {
   useEffect(() => {
     if (!rotationKey) return;
 
-    // 1) Ensure we have today's solution (deterministic pick; saved once for visibility)
+    // 1) Ensure we have today's solution
     const solKey = solutionKeyFor(rotationKey);
     let storedSolution = null;
     try {
@@ -137,7 +137,7 @@ function App() {
     }
     setSelectedPlayer(storedSolution);
 
-    // 2) Hydrate game state for today, if any, and apply lock rules + TIMER persistence
+    // 2) Hydrate game state for today + lock + timer carry-over
     const gKey = gameKeyFor(rotationKey);
     const locked = isLocked(rotationKey);
 
@@ -153,7 +153,6 @@ function App() {
         if (Array.isArray(s.guessedPlayers)) setGuessedPlayers(s.guessedPlayers);
         if (s.gameMode) setGameMode(s.gameMode);
 
-        // ---- TIMER: carry forward based on time away ----
         if (typeof s.timer === 'number') {
           const savedAt = s.timerSavedAt ?? Date.now();
           const delta = Math.floor((Date.now() - savedAt) / 1000);
@@ -166,12 +165,11 @@ function App() {
 
         if (locked || s.gameOver) {
           setShowActualPortrait(true);
-          setShowPortraitModal(false);      // don't pop modal again after refresh
-          setPortraitModalDismissed(true);  // keep the revealed image inline
+          setShowPortraitModal(false);
+          setPortraitModalDismissed(true);
         }
       } else {
         if (locked) {
-          // Locked but no saved state (edge case): show reveal + block input
           setGameOver(true);
           setShowActualPortrait(true);
           setShowPortraitModal(false);
@@ -188,7 +186,7 @@ function App() {
     // 3) Start timer loop
     startTimer();
 
-    // 4) Optionally purge old saves to keep storage tidy
+    // 4) Tidy old saves
     Object.keys(localStorage)
       .filter(k => k.startsWith(`${STORAGE_PREFIX}:game:`) && k !== gKey)
       .forEach(k => localStorage.removeItem(k));
@@ -196,7 +194,7 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey]);
 
-  // Persist today's game state whenever it changes (INCLUDES TIMER)
+  // Persist today's game state whenever it changes
   useEffect(() => {
     if (!rotationKey) return;
     const gKey = gameKeyFor(rotationKey);
@@ -207,27 +205,19 @@ function App() {
       message,
       triesTaken,
       guessedPlayers,
-      gameMode,           // NEW
-      timer,              // NEW
-      timerSavedAt: Date.now(), // NEW
+      gameMode,
+      timer,
+      timerSavedAt: Date.now(),
       version: 1,
       savedAt: Date.now(),
     };
     try { localStorage.setItem(gKey, JSON.stringify(gameState)); } catch {}
   }, [
-    rotationKey,
-    guessesLeft,
-    previousGuesses,
-    gameOver,
-    message,
-    triesTaken,
-    guessedPlayers,
-    timer,        // NEW
-    gameMode,     // NEW
+    rotationKey, guessesLeft, previousGuesses, gameOver,
+    message, triesTaken, guessedPlayers, timer, gameMode
   ]);
 
   const resetGameState = () => {
-    // Guard: don't reset if locked and not in debug
     if (isLocked(rotationKey) && !DEBUG) return;
 
     setGuessesLeft(8);
@@ -259,7 +249,7 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedPlayer || guessesLeft <= 0 || gameOver) return; // prevent guesses after lock
+    if (!selectedPlayer || guessesLeft <= 0 || gameOver) return;
 
     const correctedPlayerName = capitalizeName(playerName);
     if (guessedPlayers.includes(correctedPlayerName)) {
@@ -411,7 +401,6 @@ function App() {
     return `${hours}:${minutes}:${seconds}`;
   };
 
-  // Original helper (still used by reset/hydrate); interval management handled by effects below
   const startTimer = () => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
@@ -433,7 +422,6 @@ function App() {
   }, [timer, gameMode, gameOver, selectedPlayer]);
 
   const handlePlayAgain = () => {
-    // In normal mode we lock the day; allow replay only in debug mode
     if (!DEBUG) return;
     try { localStorage.removeItem(lockKeyFor(rotationKey)); } catch {}
     resetGameState();
@@ -455,11 +443,7 @@ function App() {
     setMessage(msg);
     setGameOver(true);
     setShowActualPortrait(true);
-
-    // Lock today so refresh can't re-guess
     try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
-
-    // Show the modal once now; after refresh keep it dismissed
     setShowPortraitModal(true);
     setPortraitModalDismissed(false);
   };
@@ -479,7 +463,7 @@ function App() {
   };
 
   const formatShareText = () => {
-    const gameNumber = rotationKey; // or hash to a short number if you want
+    const gameNumber = rotationKey;
     const guessesUsed = triesTaken;
     const maxGuesses = previousGuesses.length;
     const win = gameOver && message.includes('Correct!');
@@ -514,11 +498,9 @@ function App() {
     }
   };
 
-  // === Timer loop: do NOT reset on refresh; pause when game over ===
+  // Timer loop: pause when game over
   useEffect(() => {
     clearInterval(intervalRef.current);
-
-    // If game is over (or locked), do not run the clock
     if (!selectedPlayer || gameOver) return;
 
     intervalRef.current = setInterval(() => {
@@ -673,14 +655,11 @@ function App() {
             {gameOver && (
               <div>
                 <p>{guessesLeft === 0 ? `Game Over! The correct player was ${selectedPlayer?.name}.` : message}</p>
-
-                {/* Only allow replay in debug mode; normal mode stays locked until next rotation */}
                 {DEBUG ? (
                   <button onClick={handlePlayAgain}>Play Again (debug)</button>
                 ) : (
                   <button disabled title="Come back after midnight CT for a new player">Play Again</button>
                 )}
-
                 <button onClick={handleShare} style={{ marginLeft: 8 }}>Share Result</button>
               </div>
             )}
@@ -722,38 +701,11 @@ function App() {
           </div>
         )}
 
-        {selectedPlayer && showJumpshot && (
-          <div className="jumpshot-container">
-            {showActualPortrait ? (
-              <video
-                src={`${PUB}/images/${slugify(selectedPlayer.name)}-jumpshotreveal.mp4`}
-                autoPlay
-                loop
-                muted
-                controls
-                className="jumpshot"
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <video
-                src={`${PUB}/images/${slugify(selectedPlayer.name)}-jumpshot.mp4`}
-                autoPlay
-                loop
-                muted
-                controls
-                className="jumpshot"
-              >
-                Your browser does not support the video tag.
-              </video>
-            )}
-          </div>
-        )}
-
         <div className="game-info">
           <h3>Previous Guesses:</h3>
           <div className="info-box">
             <div className="info-box-inner">
+              {/* Desktop header (hidden on phones via CSS) */}
               <div className="info-item-wrapper title">
                 <div className="info-label">Name</div>
                 <div className="info-label">Team</div>
@@ -763,6 +715,13 @@ function App() {
                 <div className="info-label">Age</div>
                 <div className="info-label">#</div>
               </div>
+
+              {/* Mobile header (shown on phones via CSS; no scrolling) */}
+              <div className="mobile-grid-head" aria-hidden="true">
+                <div>Team</div><div>Pos</div><div>Conf</div>
+                <div>Ht</div><div>Age</div><div>#</div>
+              </div>
+
               {previousGuesses.map((prevGuess, index) => (
                 <div
                   key={index}
@@ -777,7 +736,8 @@ function App() {
                   <div className="info-item name-cell">
                     {prevGuess ? prevGuess.guess : ''}
                   </div>
-                  <div className={`info-item ${prevGuess ? getFeedbackClassTeam(prevGuess.feedback.team) : ''}`}>
+
+                  <div className={`info-item ${prevGuess ? getFeedbackClassTeam(prevGuess.feedback.team) : ''} team-cell`}>
                     {prevGuess && (
                       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%'}}>
                         {(() => {
@@ -799,12 +759,15 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <div className={`info-item ${prevGuess ? getFeedbackClassSimple(prevGuess.feedback.position) : ''}`}>
+
+                  <div className={`info-item ${prevGuess ? getFeedbackClassSimple(prevGuess.feedback.position) : ''} pos-cell`}>
                     {prevGuess ? prevGuess.feedback.positionText : ''}
                   </div>
-                  <div className={`info-item ${prevGuess ? getFeedbackClassSimple(prevGuess.feedback.conf) : ''}`}>
+
+                  <div className={`info-item ${prevGuess ? getFeedbackClassSimple(prevGuess.feedback.conf) : ''} conf-cell`}>
                     {prevGuess ? (prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : '') : ''}
                   </div>
+
                   <div className={`info-item ht-cell ${prevGuess ? getFeedbackClass(prevGuess.feedback.height) : ''}`}>
                     {prevGuess ? prevGuess.feedback.height.value : ''}
                     {prevGuess && (prevGuess.feedback.height.emoji === '⬆️' || prevGuess.feedback.height.emoji === '⬇️') && (
@@ -813,6 +776,7 @@ function App() {
                       </span>
                     )}
                   </div>
+
                   <div className={`info-item age-cell ${prevGuess ? getFeedbackClass(prevGuess.feedback.age) : ''}`}>
                     {prevGuess ? prevGuess.feedback.age.value : ''}
                     {prevGuess && (prevGuess.feedback.age.emoji === '⬆️' || prevGuess.feedback.age.emoji === '⬇️') && (
@@ -821,6 +785,7 @@ function App() {
                       </span>
                     )}
                   </div>
+
                   <div className={`info-item num-cell ${prevGuess ? getFeedbackClass(prevGuess.feedback.numberMatch) : ''}`}>
                     {prevGuess ? prevGuess.feedback.numberMatch.value : ''}
                     {prevGuess && (prevGuess.feedback.numberMatch.emoji === '⬆️' || prevGuess.feedback.numberMatch.emoji === '⬇️') && (
@@ -829,49 +794,6 @@ function App() {
                       </span>
                     )}
                   </div>
-
-                  {/* ===== Mobile compact pills (visible only on small screens via CSS) ===== */}
-                  {prevGuess && (
-                    <div className="mobile-pill-row">
-                      <span
-                        className={`pill ${getFeedbackClassTeam(prevGuess.feedback.team)}`}
-                        title={`Team: ${prevGuess.feedback.team}`}
-                      >
-                        {prevGuess.feedback.team?.split(' ')[0] || ''}
-                      </span>
-                      <span
-                        className={`pill ${getFeedbackClassSimple(prevGuess.feedback.position)}`}
-                        title={`Pos: ${prevGuess.feedback.positionText}`}
-                      >
-                        {prevGuess.feedback.positionText || ''}
-                      </span>
-                      <span
-                        className={`pill ${getFeedbackClassSimple(prevGuess.feedback.conf)}`}
-                        title={`Conf: ${prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : ''}`}
-                      >
-                        {prevGuess.feedback.confText ? prevGuess.feedback.confText.split(' ')[0] : ''}
-                      </span>
-                      <span
-                        className={`pill ${getFeedbackClass(prevGuess.feedback.height)}`}
-                        title={`Ht: ${prevGuess.feedback.height.value}`}
-                      >
-                        {prevGuess.feedback.height?.value ?? ''}
-                      </span>
-                      <span
-                        className={`pill ${getFeedbackClass(prevGuess.feedback.age)}`}
-                        title={`Age: ${prevGuess.feedback.age.value}`}
-                      >
-                        {prevGuess.feedback.age?.value ?? ''}
-                      </span>
-                      <span
-                        className={`pill ${getFeedbackClass(prevGuess.feedback.numberMatch)}`}
-                        title={`#: ${prevGuess.feedback.numberMatch.value}`}
-                      >
-                        {prevGuess.feedback.numberMatch?.value ?? ''}
-                      </span>
-                    </div>
-                  )}
-                  {/* ====================================================================== */}
                 </div>
               ))}
             </div>
