@@ -645,3 +645,4 @@ input:checked + .slider:before { transform: translateX(26px); }
 @media (max-width: 420px){
   .shot-clock .digits{ font-size:24px; }
 }
+
