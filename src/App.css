@@ -24,6 +24,9 @@ body {
   margin: 0;
 }
 
+/* Hide the mobile header by default (desktop) */
+.mobile-grid-head { display: none; }
+
 /* Main app container */
 .App {
   text-align: center;
@@ -194,17 +197,9 @@ button:disabled {
 }
 .info-box.scrolled { box-shadow: 0 8px 24px rgba(255,89,16,0.10); }
 
-/* ==================== DESKTOP GRID (header + rows) ==================== */
+/* Header row */
 .info-item-wrapper {
-  display: grid;
-  grid-template-columns:
-    var(--col-name)
-    var(--col-team)
-    var(--col-pos)
-    var(--col-conf)
-    var(--col-ht)
-    var(--col-age)
-    var(--col-num);
+  display: flex;
   gap: 0;
   margin-bottom: 10px;
   align-items: stretch;
@@ -212,7 +207,6 @@ button:disabled {
   min-height: var(--row-h);
   position: relative;
 }
-
 .title {
   margin-bottom: 10px;
   font-weight: bold;
@@ -229,11 +223,35 @@ button:disabled {
   justify-content: center;
 }
 
+/* Column widths (header and rows) */
+.title .info-label:nth-child(1),
+.info-item-wrapper .name-cell { flex: 0 0 var(--col-name); }
+.title .info-label:nth-child(2),
+.info-item-wrapper .info-item:nth-child(2) { flex: 0 0 var(--col-team); }
+.title .info-label:nth-child(3),
+.info-item-wrapper .info-item:nth-child(3) { flex: 0 0 var(--col-pos); }
+.title .info-label:nth-child(4),
+.info-item-wrapper .info-item:nth-child(4) { flex: 0 0 var(--col-conf); }
+.title .info-label:nth-child(5),
+.info-item-wrapper .info-item:nth-child(5) { flex: 0 0 var(--col-ht); }
+.title .info-label:nth-child(6),
+.info-item-wrapper .info-item:nth-child(6) { flex: 0 0 var(--col-age); }
+.title .info-label:nth-child(7),
+.info-item-wrapper .info-item:nth-child(7) { flex: 0 0 var(--col-num); }
+
 /* Row cells */
 .guess {
   border: 2px solid #d1d5db;
   border-radius: 8px;
   padding-top: 0px;
+  display: flex;
+  justify-content: space-between;
+  gap: 0;
+  align-items: stretch;
+  height: var(--row-h);
+  min-height: var(--row-h);
+  position: relative;
+  width: 100%;
   background-color: white;
   overflow: hidden;
   font-family: 'Chakra Petch', serif;
@@ -488,21 +506,27 @@ button:disabled {
 /*           MOBILE: Poeltl-style grid, no horizontal scroll     */
 /* ============================================================= */
 @media (max-width: 520px){
-  /* The table container should not force horizontal scroll on phones */
   .info-box { padding: 6px; overflow-x: visible; }
   .info-box-inner { min-width: 0; }
 
-  /* Hide the desktop header row */
+  /* Hide the desktop header row on phones */
   .info-item-wrapper.title { display: none; }
 
-  /* Turn each guess into a 2-row grid:
-     Row 1: name (spans all)
-     Row 2: team / pos / conf / ht / age / num  */
+  /* Show compact mobile header */
+  .mobile-grid-head {
+    display: grid;                      /* becomes visible only in this query */
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin: 4px 8px 10px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* Grid layout for each guess row (no extra JS classes required) */
   .info-item-wrapper.guess{
     display: grid;
     grid-template-areas:
       "name name name name name name"
-    /* children 2..7 become team,pos,conf,ht,age,num below */
       "team pos conf ht age num";
     grid-template-columns: repeat(6, 1fr);
     row-gap: 6px;
@@ -512,30 +536,25 @@ button:disabled {
     min-height: 0;
     border-radius: 12px;
   }
+  .info-item-wrapper.guess .name-cell { grid-area: name; }
+  .info-item-wrapper.guess .info-item:nth-child(2) { grid-area: team; }
+  .info-item-wrapper.guess .info-item:nth-child(3) { grid-area: pos; }
+  .info-item-wrapper.guess .info-item:nth-child(4) { grid-area: conf; }
+  .info-item-wrapper.guess .info-item:nth-child(5) { grid-area: ht; }
+  .info-item-wrapper.guess .info-item:nth-child(6) { grid-area: age; }
+  .info-item-wrapper.guess .info-item:nth-child(7) { grid-area: num; }
 
-  /* Remove vertical separators from desktop layout */
   .info-item { border-right: none !important; font-size: 0.95em; padding: 8px 0; }
 
-  /* Map cells to areas (no extra class names needed) */
-  .info-item-wrapper.guess > .name-cell { grid-area: name; justify-content: flex-start; font-weight: 700; background:#fff !important; }
-  .info-item-wrapper.guess > .info-item:nth-child(2) { grid-area: team; } /* team cell */
-  .info-item-wrapper.guess > .info-item:nth-child(3) { grid-area: pos; }  /* position */
-  .info-item-wrapper.guess > .info-item:nth-child(4) { grid-area: conf; } /* conference */
-  .info-item-wrapper.guess > .ht-cell  { grid-area: ht; }
-  .info-item-wrapper.guess > .age-cell { grid-area: age; }
-  .info-item-wrapper.guess > .num-cell { grid-area: num; }
+  .name-cell { justify-content: flex-start; font-weight: 700; background:#fff !important; }
+  .team-cell img { height: 18px !important; margin-bottom: 2px !important; }
 
-  .team-cell img,
-  .info-item-wrapper.guess > .info-item:nth-child(2) img { height: 18px !important; margin-bottom: 2px !important; }
-
-  /* Mobile color palette stays readable */
   .guess .info-item.correct   { background: #2bbd54; color:#fff; }
   .guess .info-item.close     { background: #ffd666; color:#111; }
   .guess .info-item.incorrect { background: #2f2f2f; color:#fff; }
 
   .guess:not(:last-child){ margin-bottom: 8px; }
 
-  /* Reposition help icon so it doesn’t overlap */
   .help-icon { position: absolute; top: 70px; right: 12px; }
 }
 
@@ -579,7 +598,7 @@ button:disabled {
 input:checked + .slider { background-color: #FF5910; }
 input:checked + .slider:before { transform: translateX(26px); }
 
-/* Remove bold container border on phones (your earlier tweak) */
+/* Remove bold container border on phones */
 @media (max-width: 520px) {
   .info-box {
     border: none;
@@ -592,4 +611,37 @@ input:checked + .slider:before { transform: translateX(26px); }
     min-width: 0;
     padding: 0 8px 12px;
   }
+}
+
+.shot-clock{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 6px 12px;
+  background:#111;
+  border:4px solid #333;
+  border-radius:10px;
+  box-shadow:
+    inset 0 0 10px rgba(255,0,0,0.25),
+    0 2px 8px rgba(0,0,0,0.15);
+}
+.shot-clock .digits{
+  font-family: 'Chakra Petch', monospace;
+  font-weight:700;
+  font-size: 28px;           /* tweak if you want it bigger/smaller */
+  letter-spacing: 1px;
+  color:#ff3b30;             /* shot-clock red */
+  text-shadow: 0 0 10px rgba(255,59,48,0.7);
+  line-height: 1;
+}
+.blinking-colon{
+  animation: shotBlink 1s steps(1,end) infinite;
+}
+@keyframes shotBlink{
+  50% { opacity: .15; }
+}
+
+/* optional: make it scale down on small phones */
+@media (max-width: 420px){
+  .shot-clock .digits{ font-size:24px; }
 }

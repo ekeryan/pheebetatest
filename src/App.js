@@ -603,9 +603,10 @@ function App() {
             <span className="guesses-bar-label">{guessesLeft}</span>
           </div>
         </div>
-        <p>
-          Time: {gameMode === 'speed' ? `00:00:${String(timer).padStart(2, '0')}` : formatTime(timer)}
-        </p>
+
+        <div style={{ margin: '8px 0 16px' }}>
+          <ShotClock seconds={timer} mode={gameMode} />
+        </div>
 
         {!gameOver && guessesLeft > 0 ? (
           <form onSubmit={handleSubmit}>
@@ -823,6 +824,27 @@ function getFeedbackClassSimple(feedback) {
   if (feedback === '✅') return 'correct';
   if (feedback === '🟡') return 'close';
   return 'incorrect';
+}
+
+/* Shot clock (single copy) */
+function ShotClock({ seconds = 0, mode = 'normal' }) {
+  // normal = count up, show MM:SS; speed = count down, show SS
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+
+  const text =
+    mode === 'speed'
+      ? String(secs).padStart(2, '0')                 // e.g. 58, 07
+      : `${String(mins).padStart(2, '0')}<span class="blinking-colon">:</span>${String(secs).padStart(2, '0')}`; // 01:23
+
+  return (
+    <div className="shot-clock" aria-label="Timer">
+      <span
+        className="digits"
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
+    </div>
+  );
 }
 
 export default App;

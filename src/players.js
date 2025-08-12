@@ -84,7 +84,7 @@ const players = [
   { id: 8,   name: "Makayla Timpson", team: "IND", position: "F-C", number: "21", age: 23, height: "6'2\"", conf: "East", previousTeams: [] },
   { id: 16,  name: "Caitlin Clark",   team: "IND", position: "G",   number: "22", age: 23, height: "6'0\"", conf: "East", previousTeams: [] },
   { id: 78,  name: "Sydney Colson",   team: "IND", position: "G",   number: "51", age: 36, height: "5'8\"", conf: "East", previousTeams: ["NYL","LVA","MIN","CHI"] },
-  { id: 5010, name: "Chloe Bibby",    team: "IND", position: "F",   number: "55", age: 0,  height: "",     conf: "East", previousTeams: [] },
+  { id: 5010, name: "Chloe Bibby",    team: "IND", position: "F",   number: "55", age: 27,  height: "6'0\"",     conf: "East", previousTeams: ["GSV"] },
 
   // LAS — Sparks
   { id: 72,  name: "Sania Feagin",       team: "LAS", position: "F",   number: "1",  age: 22, height: "6'3\"", conf: "West", previousTeams: [] },
