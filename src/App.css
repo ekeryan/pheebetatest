@@ -194,9 +194,17 @@ button:disabled {
 }
 .info-box.scrolled { box-shadow: 0 8px 24px rgba(255,89,16,0.10); }
 
-/* Header row */
+/* ==================== DESKTOP GRID (header + rows) ==================== */
 .info-item-wrapper {
-  display: flex;
+  display: grid;
+  grid-template-columns:
+    var(--col-name)
+    var(--col-team)
+    var(--col-pos)
+    var(--col-conf)
+    var(--col-ht)
+    var(--col-age)
+    var(--col-num);
   gap: 0;
   margin-bottom: 10px;
   align-items: stretch;
@@ -204,6 +212,7 @@ button:disabled {
   min-height: var(--row-h);
   position: relative;
 }
+
 .title {
   margin-bottom: 10px;
   font-weight: bold;
@@ -220,35 +229,11 @@ button:disabled {
   justify-content: center;
 }
 
-/* Column widths (header and rows) */
-.title .info-label:nth-child(1),
-.info-item-wrapper .name-cell { flex: 0 0 var(--col-name); }
-.title .info-label:nth-child(2),
-.info-item-wrapper .info-item:nth-child(2) { flex: 0 0 var(--col-team); }
-.title .info-label:nth-child(3),
-.info-item-wrapper .info-item:nth-child(3) { flex: 0 0 var(--col-pos); }
-.title .info-label:nth-child(4),
-.info-item-wrapper .info-item:nth-child(4) { flex: 0 0 var(--col-conf); }
-.title .info-label:nth-child(5),
-.info-item-wrapper .info-item:nth-child(5) { flex: 0 0 var(--col-ht); }
-.title .info-label:nth-child(6),
-.info-item-wrapper .info-item:nth-child(6) { flex: 0 0 var(--col-age); }
-.title .info-label:nth-child(7),
-.info-item-wrapper .info-item:nth-child(7) { flex: 0 0 var(--col-num); }
-
 /* Row cells */
 .guess {
   border: 2px solid #d1d5db;
   border-radius: 8px;
   padding-top: 0px;
-  display: flex;
-  justify-content: space-between;
-  gap: 0;
-  align-items: stretch;
-  height: var(--row-h);
-  min-height: var(--row-h);
-  position: relative;
-  width: 100%;
   background-color: white;
   overflow: hidden;
   font-family: 'Chakra Petch', serif;
@@ -510,16 +495,6 @@ button:disabled {
   /* Hide the desktop header row */
   .info-item-wrapper.title { display: none; }
 
-  /* Show a compact mobile header (labels above first row) */
-  .mobile-grid-head {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
-    margin: 4px 8px 10px;
-    font-size: 12px;
-    color: #555;
-  }
-
   /* Turn each guess into a 2-row grid:
      Row 1: name (spans all)
      Row 2: team / pos / conf / ht / age / num  */
@@ -527,6 +502,7 @@ button:disabled {
     display: grid;
     grid-template-areas:
       "name name name name name name"
+    /* children 2..7 become team,pos,conf,ht,age,num below */
       "team pos conf ht age num";
     grid-template-columns: repeat(6, 1fr);
     row-gap: 6px;
@@ -540,15 +516,17 @@ button:disabled {
   /* Remove vertical separators from desktop layout */
   .info-item { border-right: none !important; font-size: 0.95em; padding: 8px 0; }
 
-  .name-cell { grid-area: name; justify-content: flex-start; font-weight: 700; background:#fff !important; }
-  .team-cell { grid-area: team; }
-  .pos-cell  { grid-area: pos; }
-  .conf-cell { grid-area: conf; }
-  .ht-cell   { grid-area: ht; }
-  .age-cell  { grid-area: age; }
-  .num-cell  { grid-area: num; }
+  /* Map cells to areas (no extra class names needed) */
+  .info-item-wrapper.guess > .name-cell { grid-area: name; justify-content: flex-start; font-weight: 700; background:#fff !important; }
+  .info-item-wrapper.guess > .info-item:nth-child(2) { grid-area: team; } /* team cell */
+  .info-item-wrapper.guess > .info-item:nth-child(3) { grid-area: pos; }  /* position */
+  .info-item-wrapper.guess > .info-item:nth-child(4) { grid-area: conf; } /* conference */
+  .info-item-wrapper.guess > .ht-cell  { grid-area: ht; }
+  .info-item-wrapper.guess > .age-cell { grid-area: age; }
+  .info-item-wrapper.guess > .num-cell { grid-area: num; }
 
-  .team-cell img { height: 18px !important; margin-bottom: 2px !important; }
+  .team-cell img,
+  .info-item-wrapper.guess > .info-item:nth-child(2) img { height: 18px !important; margin-bottom: 2px !important; }
 
   /* Mobile color palette stays readable */
   .guess .info-item.correct   { background: #2bbd54; color:#fff; }
@@ -600,7 +578,8 @@ button:disabled {
 }
 input:checked + .slider { background-color: #FF5910; }
 input:checked + .slider:before { transform: translateX(26px); }
-/* Remove bold container border on phones */
+
+/* Remove bold container border on phones (your earlier tweak) */
 @media (max-width: 520px) {
   .info-box {
     border: none;
