@@ -6,8 +6,8 @@ import './App.css';
 const PUB = process.env.PUBLIC_URL;
 
 // "A'ja Wilson" -> "ajawilson"
-const slugify = (name) => (name || '').toLowerCase().replace(/[^a-z]/g, '');
-
+// "Cheyenne Parker-Tyus" -> "cheyenneparker-tyus"
+const slugify = (name) => (name || '').toLowerCase().replace(/[^a-z-]/g, '');
 
 // map team code -> filename (avoid Windows reserved "con")
 const teamCodeToFile = (code) => {
@@ -92,7 +92,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [guessesLeft, setGuessesLeft] = useState(8);
   const [previousGuesses, setPreviousGuesses] = useState(Array(8).fill(null));
-  const [timer, setTimer] = useState(0);
+  const [timer, setTimer] = useState(0); // count-up only
   const [showSilhouette, setShowSilhouette] = useState(false);
   const [showJumpshot, setShowJumpshot] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -103,7 +103,6 @@ function App() {
   const [showActualPortrait, setShowActualPortrait] = useState(false);
   const [showPortraitModal, setShowPortraitModal] = useState(false);
   const [portraitModalDismissed, setPortraitModalDismissed] = useState(false);
-  const [gameMode, setGameMode] = useState('normal'); // 'normal' or 'speed'
   const intervalRef = useRef(null);
 
   // compute rotationKey (changes at midnight CT; every minute in DEBUG)
@@ -115,11 +114,6 @@ function App() {
     }, DEBUG ? 5_000 : 60_000);
     return () => clearInterval(tick);
   }, []);
-
-  // initial timer based on mode
-  useEffect(() => {
-    setTimer(gameMode === 'speed' ? 60 : 0);
-  }, [gameMode]);
 
   // initial load / daily solution select / hydrate state
   useEffect(() => {
@@ -152,17 +146,13 @@ function App() {
         if (typeof s.message === 'string') setMessage(s.message);
         if (typeof s.triesTaken === 'number') setTriesTaken(s.triesTaken);
         if (Array.isArray(s.guessedPlayers)) setGuessedPlayers(s.guessedPlayers);
-        if (s.gameMode) setGameMode(s.gameMode);
 
-        if (typeof s.timer === 'number') {
-          const savedAt = s.timerSavedAt ?? Date.now();
-          const delta = Math.floor((Date.now() - savedAt) / 1000);
-          let t = s.timer;
-          if (!(s.gameOver || locked)) {
-            t = (s.gameMode === 'speed') ? Math.max(0, t - delta) : t + delta;
-          }
-          setTimer(t);
-        }
+        // carry forward timer by the time away (only if not over/locked)
+        const savedAt = s.timerSavedAt ?? Date.now();
+        const delta = Math.floor((Date.now() - savedAt) / 1000);
+        const base = typeof s.timer === 'number' ? s.timer : 0;
+        const t = (s.gameOver || locked) ? base : base + delta;
+        setTimer(t);
 
         if (locked || s.gameOver) {
           setShowActualPortrait(true);
@@ -206,16 +196,15 @@ function App() {
       message,
       triesTaken,
       guessedPlayers,
-      gameMode,
       timer,
       timerSavedAt: Date.now(),
-      version: 1,
+      version: 2,
       savedAt: Date.now(),
     };
     try { localStorage.setItem(gKey, JSON.stringify(gameState)); } catch {}
   }, [
     rotationKey, guessesLeft, previousGuesses, gameOver,
-    message, triesTaken, guessedPlayers, timer, gameMode
+    message, triesTaken, guessedPlayers, timer
   ]);
 
   const resetGameState = () => {
@@ -232,7 +221,7 @@ function App() {
     setShowActualPortrait(false);
     setShowPortraitModal(false);
     setPortraitModalDismissed(false);
-    setTimer(gameMode === 'speed' ? 60 : 0);
+    setTimer(0);
     startTimer();
   };
 
@@ -405,22 +394,9 @@ function App() {
   const startTimer = () => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setTimer(prev => {
-        if (gameMode === 'speed') {
-          return prev > 0 ? prev - 1 : 0;
-        } else {
-          return prev + 1;
-        }
-      });
+      setTimer(prev => prev + 1); // always count up
     }, 1000);
   };
-
-  // End game if timer hits 0 in speed mode
-  useEffect(() => {
-    if (gameMode === 'speed' && timer === 0 && !gameOver) {
-      handleGameEnd(`⏰ Time's up! The correct player was ${selectedPlayer?.name}.`);
-    }
-  }, [timer, gameMode, gameOver, selectedPlayer]);
 
   const handlePlayAgain = () => {
     if (!DEBUG) return;
@@ -505,14 +481,11 @@ function App() {
     if (!selectedPlayer || gameOver) return;
 
     intervalRef.current = setInterval(() => {
-      setTimer(prev => {
-        if (gameMode === 'speed') return prev > 0 ? prev - 1 : 0;
-        return prev + 1;
-      });
+      setTimer(prev => prev + 1);
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [selectedPlayer, gameMode, gameOver]);
+  }, [selectedPlayer, gameOver]);
 
   useEffect(() => {
     if (gameOver) clearInterval(intervalRef.current);
@@ -579,19 +552,7 @@ function App() {
 
         <h1>PHEE</h1>
 
-        <div className="mode-switch-container">
-          <span className={gameMode === 'normal' ? 'active' : ''}>Normal</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={gameMode === 'speed'}
-              onChange={() => setGameMode(gameMode === 'normal' ? 'speed' : 'normal')}
-            />
-            <span className="slider"></span>
-          </label>
-          <span className={gameMode === 'speed' ? 'active' : ''}>Speed</span>
-        </div>
-
+        {/* guesses left */}
         <div className="guesses-health-bar-outer">
           <div
             className={`guesses-health-bar-inner${guessesLeft <= 2 ? ' glow' : ''}`}
@@ -605,9 +566,10 @@ function App() {
           </div>
         </div>
 
-        <div style={{ margin: '8px 0 16px' }}>
-          <ShotClock seconds={timer} mode={gameMode} />
-        </div>
+        {/* simple count-up time */}
+        <p style={{ margin: '8px 0 16px' }}>
+          Time: {formatTime(timer)}
+        </p>
 
         {!gameOver && guessesLeft > 0 ? (
           <form onSubmit={handleSubmit}>
@@ -825,27 +787,6 @@ function getFeedbackClassSimple(feedback) {
   if (feedback === '✅') return 'correct';
   if (feedback === '🟡') return 'close';
   return 'incorrect';
-}
-
-/* Shot clock (single copy) */
-function ShotClock({ seconds = 0, mode = 'normal' }) {
-  // normal = count up, show MM:SS; speed = count down, show SS
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-
-  const text =
-    mode === 'speed'
-      ? String(secs).padStart(2, '0')                 // e.g. 58, 07
-      : `${String(mins).padStart(2, '0')}<span class="blinking-colon">:</span>${String(secs).padStart(2, '0')}`; // 01:23
-
-  return (
-    <div className="shot-clock" aria-label="Timer">
-      <span
-        className="digits"
-        dangerouslySetInnerHTML={{ __html: text }}
-      />
-    </div>
-  );
 }
 
 export default App;
