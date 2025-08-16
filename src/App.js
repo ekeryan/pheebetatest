@@ -1,7 +1,9 @@
+// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import players from './players';
 import './App.css';
 
+// paths
 const PUB = process.env.PUBLIC_URL;
 
 // "A'ja Wilson" -> "ajawilson"
@@ -15,8 +17,7 @@ const teamCodeToFile = (code) => {
   return c;
 };
 
-// ====================== daily rotation & storage ======================
-
+// ================= rotation & storage =================
 const DEBUG =
   new URLSearchParams(window.location.search).get('debug') === '1' ||
   localStorage.getItem('phee:debug') === '1';
@@ -30,16 +31,11 @@ function getCTParts(d = new Date()) {
   const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
   return parts;
 }
-function rotationKeyFor(d = new Date()) {
-  const p = getCTParts(d);
-  return `CT-${p.year}-${p.month}-${p.day}`;
-}
+
 function getRotationKey() {
-  if (DEBUG) {
-    const p = getCTParts();
-    return `CT-${p.year}-${p.month}-${p.day}-${p.hour}-${p.minute}`;
-  }
-  return rotationKeyFor();
+  const p = getCTParts();
+  if (DEBUG) return `CT-${p.year}-${p.month}-${p.day}-${p.hour}-${p.minute}`;
+  return `CT-${p.year}-${p.month}-${p.day}`;
 }
 
 // rng helpers
@@ -71,9 +67,6 @@ const STORAGE_PREFIX = 'phee:v1';
 const gameKeyFor = (rotationKey) => `${STORAGE_PREFIX}:game:${rotationKey}`;
 const solutionKeyFor = (rotationKey) => `${STORAGE_PREFIX}:solution:${rotationKey}`;
 const lockKeyFor = (rotationKey) => `${STORAGE_PREFIX}:locked:${rotationKey}`;
-const STREAK_KEY = `${STORAGE_PREFIX}:streak`;
-const SEEN_HELP_KEY = `${STORAGE_PREFIX}:seenHelp`;
-
 const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) === '1';
 
 function pickSolutionFor(rotationKey) {
@@ -83,40 +76,41 @@ function pickSolutionFor(rotationKey) {
   return playersStable[idx];
 }
 
-// ============================================================================
+// ================= brand =================
+const BIRD_HEAD = `${PUB}/branding/sue-bird-head.png`;
 
+function Brand() {
+  return (
+    <div className="brand">
+      <img src={BIRD_HEAD} alt="Sue Bird" className="brand-head" />
+      <div className="brand-word">
+        <span className="brand-text">bird</span>
+        <span className="brand-dash">-</span>
+        <span className="brand-le">le</span>
+      </div>
+    </div>
+  );
+}
+
+// ================= app =================
 function App() {
   const [playerName, setPlayerName] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [message, setMessage] = useState('');
   const [guessesLeft, setGuessesLeft] = useState(8);
   const [previousGuesses, setPreviousGuesses] = useState(Array(8).fill(null));
-  const [timer, setTimer] = useState(0); // count-up only
+  const [timer, setTimer] = useState(0); // count-up
   const [showSilhouette, setShowSilhouette] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [triesTaken, setTriesTaken] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [guessedPlayers, setGuessedPlayers] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
-
-  // reveal stuff
   const [showActualPortrait, setShowActualPortrait] = useState(false);
   const [showPortraitModal, setShowPortraitModal] = useState(false);
   const [portraitModalDismissed, setPortraitModalDismissed] = useState(false);
-
-  // streak
-  const [streak, setStreak] = useState(() => {
-    try {
-      const s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}');
-      return { count: s?.count || 0, max: s?.max || 0, lastKey: s?.lastKey || null };
-    } catch { return { count: 0, max: 0, lastKey: null }; }
-  });
-
   const intervalRef = useRef(null);
-  const meterRef = useRef(null);
-  const prevGuessesRef = useRef(guessesLeft);
 
-  // rotation key (changes at midnight CT; every minute in DEBUG)
   const [rotationKey, setRotationKey] = useState(getRotationKey());
   useEffect(() => {
     const tick = setInterval(() => {
@@ -126,20 +120,10 @@ function App() {
     return () => clearInterval(tick);
   }, []);
 
-  // open help on first visit
-  useEffect(() => {
-    const seen = localStorage.getItem(SEEN_HELP_KEY);
-    if (!seen) {
-      setShowHelp(true);
-      try { localStorage.setItem(SEEN_HELP_KEY, '1'); } catch {}
-    }
-  }, []);
-
-  // pick today's player + hydrate state
+  // load/hydrate
   useEffect(() => {
     if (!rotationKey) return;
 
-    // ensure today's solution
     const solKey = solutionKeyFor(rotationKey);
     let storedSolution = null;
     try {
@@ -152,7 +136,6 @@ function App() {
     }
     setSelectedPlayer(storedSolution);
 
-    // hydrate game
     const gKey = gameKeyFor(rotationKey);
     const locked = isLocked(rotationKey);
 
@@ -193,18 +176,15 @@ function App() {
       resetGameState();
     }
 
-    // timer loop
     startTimer();
 
-    // tidy old saves
     Object.keys(localStorage)
       .filter(k => k.startsWith(`${STORAGE_PREFIX}:game:`) && k !== gKey)
       .forEach(k => localStorage.removeItem(k));
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey]);
 
-  // persist today's game
+  // persist
   useEffect(() => {
     if (!rotationKey) return;
     const gKey = gameKeyFor(rotationKey);
@@ -221,12 +201,10 @@ function App() {
       savedAt: Date.now(),
     };
     try { localStorage.setItem(gKey, JSON.stringify(gameState)); } catch {}
-  }, [rotationKey, guessesLeft, previousGuesses, gameOver, message, triesTaken, guessedPlayers, timer]);
-
-  // persist streak
-  useEffect(() => {
-    try { localStorage.setItem(STREAK_KEY, JSON.stringify(streak)); } catch {}
-  }, [streak]);
+  }, [
+    rotationKey, guessesLeft, previousGuesses, gameOver,
+    message, triesTaken, guessedPlayers, timer
+  ]);
 
   const resetGameState = () => {
     if (isLocked(rotationKey) && !DEBUG) return;
@@ -244,6 +222,7 @@ function App() {
     startTimer();
   };
 
+  // Name formatting
   const capitalizeName = (name) => {
     return name.split(' ').map(part => {
       return part.split('-').map(subPart => {
@@ -267,7 +246,6 @@ function App() {
     }
 
     const foundPlayer = players.find(p => p.name.toLowerCase().trim() === correctedPlayerName.toLowerCase().trim());
-
     setTriesTaken(prev => prev + 1);
 
     if (foundPlayer) {
@@ -281,19 +259,19 @@ function App() {
 
       if (foundPlayer.id === selectedPlayer.id) {
         setShowSilhouette(true);
-        handleGameEnd(true, `🎉 Correct! The player was ${selectedPlayer.name}!`);
+        handleGameEnd(`🎉 Correct! The player was ${selectedPlayer.name}!`);
       } else {
         setGuessedPlayers(prev => [...prev, correctedPlayerName]);
-        setGuessesLeft(prev => (prev > 0 ? prev - 1 : 0));
+        setGuessesLeft(prev => prev > 0 ? prev - 1 : 0);
         setMessage("❌ Incorrect! Try again.");
         if (guessesLeft <= 1) {
-          handleGameEnd(false, `Game Over! The correct player was ${selectedPlayer.name}.`);
+          handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
         }
       }
     } else {
       setMessage("❌ Player not found! Make sure you're guessing the correct name.");
       if (guessesLeft <= 1) {
-        handleGameEnd(false, `Game Over! The correct player was ${selectedPlayer.name}.`);
+        handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
       }
     }
 
@@ -311,18 +289,24 @@ function App() {
         ? `${guessedPlayer.team} 🟡`
         : `${guessedPlayer.team} ❌`;
 
-    // position
+    // pos
     const guessedPositionParts = guessedPlayer.position.split('-');
     const selectedPositionParts = selectedPlayer.position.split('-');
     const positionMatch = guessedPositionParts.some(pos => selectedPositionParts.includes(pos));
-    feedback.position = guessedPlayer.position === selectedPlayer.position ? '✅' : (positionMatch ? '🟡' : '❌');
+
+    feedback.position = guessedPlayer.position === selectedPlayer.position
+      ? '✅'
+      : positionMatch
+        ? '🟡'
+        : '❌';
+
     feedback.positionText = guessedPlayer.position;
 
     // conf
     feedback.confText = `${guessedPlayer.conf} ${guessedPlayer.conf === selectedPlayer.conf ? '✅' : '❌'}`;
     feedback.conf = guessedPlayer.conf === selectedPlayer.conf ? '✅' : '❌';
 
-    // height
+    // height — always show arrow for direction; mark close with isClose
     const parseHeight = (height) => {
       const [feet, inches] = height.split("'").map((part) => parseInt(part.trim(), 10));
       return (feet * 12) + inches;
@@ -332,26 +316,32 @@ function App() {
     const heightDiff = Math.abs(guessedHeightInches - selectedHeightInches);
     feedback.height = {
       value: guessedHeightInches === selectedHeightInches ? guessedPlayer.height : `${guessedPlayer.height}`,
-      emoji: guessedHeightInches === selectedHeightInches ? '✅' : (heightDiff <= 2 ? '🟡' : (guessedHeightInches < selectedHeightInches ? '⬆️' : '⬇️')),
-      className: guessedHeightInches === selectedHeightInches ? '' : (heightDiff <= 2 ? 'yellow' : (guessedHeightInches < selectedHeightInches ? 'arrow-up' : 'arrow-down')),
+      emoji: guessedHeightInches === selectedHeightInches
+        ? '✅'
+        : (guessedHeightInches < selectedHeightInches ? '⬆️' : '⬇️'),
+      isClose: heightDiff <= 2
     };
 
-    // age
+    // age — always arrow; yellow when within ±2
     const ageDiff = Math.abs(guessedPlayer.age - selectedPlayer.age);
     feedback.age = {
       value: guessedPlayer.age === selectedPlayer.age ? guessedPlayer.age : `${guessedPlayer.age}`,
-      emoji: guessedPlayer.age === selectedPlayer.age ? '✅' : (ageDiff <= 2 ? '🟡' : (guessedPlayer.age < selectedPlayer.age ? '⬆️' : '⬇️')),
-      className: guessedPlayer.age === selectedPlayer.age ? '' : (ageDiff <= 2 ? 'yellow' : (guessedPlayer.age < selectedPlayer.age ? 'arrow-up' : 'arrow-down')),
+      emoji: guessedPlayer.age === selectedPlayer.age
+        ? '✅'
+        : (guessedPlayer.age < selectedPlayer.age ? '⬆️' : '⬇️'),
+      isClose: ageDiff <= 2
     };
 
-    // number
+    // number — always arrow; yellow when within ±2
     const guessedNumber = parseInt(guessedPlayer.number, 10);
     const selectedNumber = parseInt(selectedPlayer.number, 10);
     const numberDiff = Math.abs(guessedNumber - selectedNumber);
     feedback.numberMatch = {
       value: guessedNumber === selectedNumber ? guessedNumber : `${guessedNumber}`,
-      emoji: guessedNumber === selectedNumber ? '✅' : (numberDiff <= 2 ? '🟡' : (guessedNumber < selectedNumber ? '⬆️' : '⬇️')),
-      className: guessedNumber === selectedNumber ? '' : (numberDiff <= 2 ? 'yellow' : (guessedNumber < selectedNumber ? 'arrow-up' : 'arrow-down')),
+      emoji: guessedNumber === selectedNumber
+        ? '✅'
+        : (guessedNumber < selectedNumber ? '⬆️' : '⬇️'),
+      isClose: numberDiff <= 2
     };
 
     return feedback;
@@ -370,47 +360,25 @@ function App() {
     resetGameState();
   };
 
-  // streak update
-  const prevRotationKey = () => rotationKeyFor(new Date(Date.now() - 24 * 60 * 60 * 1000));
-  const handleGameEnd = (won, msg) => {
+  const handlePlayerNameChange = (e) => {
+    setPlayerName(e.target.value);
+    setShowSuggestions(true);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setPlayerName(suggestion);
+    setShowSuggestions(false);
+  };
+
+  const handleGameEnd = (msg) => {
     clearInterval(intervalRef.current);
     setMessage(msg);
     setGameOver(true);
     setShowActualPortrait(true);
     try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
-
-    // streak logic
-    setStreak((cur) => {
-      if (won) {
-        if (cur.lastKey === rotationKey) return { ...cur, lastKey: rotationKey };
-        const isConsecutive = cur.lastKey === prevRotationKey();
-        const nextCount = isConsecutive ? (cur.count + 1) : 1;
-        const nextMax = Math.max(cur.max, nextCount);
-        return { count: nextCount, max: nextMax, lastKey: rotationKey };
-      } else {
-        return { count: 0, max: Math.max(cur.max, cur.count), lastKey: rotationKey };
-      }
-    });
-
-    // show the win modal w/ image
     setShowPortraitModal(true);
     setPortraitModalDismissed(false);
   };
-
-  // pill meter bounce on wrong guess
-  useEffect(() => {
-    if (!meterRef.current) return;
-    const prev = prevGuessesRef.current;
-    if (guessesLeft < prev) {
-      const el = meterRef.current;
-      el.classList.remove('hit');
-      // restart animation
-      // eslint-disable-next-line no-unused-expressions
-      el.offsetWidth;
-      el.classList.add('hit');
-    }
-    prevGuessesRef.current = guessesLeft;
-  }, [guessesLeft]);
 
   const getEmoji = (feedback, type) => {
     if (type === 'team' || type === 'position' || type === 'conf') {
@@ -418,9 +386,10 @@ function App() {
       if (feedback.includes('🟡')) return '🟨';
       return '⬛';
     }
+    // For numeric-ish (ht/age/number): green if exact, yellow only when close (isClose), else black
     if (type === 'height' || type === 'age' || type === 'number') {
       if (feedback.emoji === '✅') return '🟩';
-      if (feedback.emoji === '⬆️' || feedback.emoji === '⬇️') return '🟨';
+      if (feedback.isClose) return '🟨';
       return '⬛';
     }
     return '⬛';
@@ -462,7 +431,6 @@ function App() {
     }
   };
 
-  // timer loop: pause when game over
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (!selectedPlayer || gameOver) return;
@@ -481,7 +449,7 @@ function App() {
   return (
     <div className="App">
       <div className="fade-in-main">
-        {/* help icon */}
+        {/* help */}
         <div
           className="help-icon"
           onClick={() => setShowHelp(true)}
@@ -490,7 +458,6 @@ function App() {
           ?
         </div>
 
-        {/* help modal (auto-opens first visit) */}
         {showHelp && (
           <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
             <div className="help-modal" onClick={e => e.stopPropagation()}>
@@ -502,51 +469,17 @@ function App() {
               <h2>How to Play</h2>
               <ul>
                 <li><b>Guess</b>: Enter the full name of a player and click Guess.</li>
-                <li><b>Silhouette</b>: You can show/hide the silhouette/headshot.</li>
-                <li><b>Hints</b>: Team/Pos/Conf/Ht/Age/# give ✅ 🟡 or arrows.</li>
+                <li><b>Show/Hide Silhouette</b>: Toggle the silhouette/headshot.</li>
               </ul>
-              <p>Daily reset at midnight CT. Good luck.</p>
             </div>
           </div>
         )}
 
-        {/* ✅ portrait modal on win/lose reveal */}
-        {showPortraitModal && selectedPlayer && (
-          <div
-            className="help-modal-overlay"
-            onClick={() => { setShowPortraitModal(false); setPortraitModalDismissed(true); }}
-          >
-            <div className="help-modal" onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
-              <button
-                className="help-modal-close"
-                onClick={() => { setShowPortraitModal(false); setPortraitModalDismissed(true); }}
-                aria-label="Close"
-              >×</button>
-              <h2>Player Revealed</h2>
-              <img
-                src={`${PUB}/images/${slugify(selectedPlayer.name)}-actual.png`}
-                alt={selectedPlayer.name}
-                className="actual"
-                style={{ maxWidth: '100%', height: 'auto', margin: '16px 0' }}
-              />
-              <div style={{ fontWeight: 500, fontSize: 18 }}>{selectedPlayer?.name}</div>
-            </div>
-          </div>
-        )}
+        {/* brand */}
+        <Brand />
 
-        <h1>PHEE</h1>
-
-        {/* streak */}
-        <div className="streak-wrap">
-          <div className="streak-chip">
-            🔥 Streak: <b>{streak.count}</b>
-            <span className="streak-max">best {streak.max}</span>
-          </div>
-        </div>
-
-        {/* guesses left — 8-pill meter */}
+        {/* guesses left – segmented */}
         <div
-          ref={meterRef}
           className={`guesses-meter ${guessesLeft <= 2 ? 'danger' : ''}`}
           role="progressbar"
           aria-valuenow={guessesLeft}
@@ -562,8 +495,8 @@ function App() {
           <div className="gm-label">{guessesLeft}</div>
         </div>
 
-        {/* shot clock */}
-        <div style={{ margin: '8px 0 16px' }}>
+        {/* timer */}
+        <div className="clock-wrap">
           <ShotClock seconds={timer} />
         </div>
 
@@ -574,7 +507,7 @@ function App() {
                 type="text"
                 placeholder="Enter full player name"
                 value={playerName}
-                onChange={e => { setPlayerName(e.target.value); setShowSuggestions(true); }}
+                onChange={handlePlayerNameChange}
                 disabled={gameOver || guessesLeft <= 0}
                 className={gameOver || guessesLeft <= 0 ? 'disabled-input' : ''}
               />
@@ -587,8 +520,11 @@ function App() {
                     players.forEach(player => {
                       const name = player.name.toLowerCase();
                       if (!guessedPlayers.includes(player.name) && name.includes(input)) {
-                        if (name.startsWith(input)) startsWith.push(player);
-                        else contains.push(player);
+                        if (name.startsWith(input)) {
+                          startsWith.push(player);
+                        } else {
+                          contains.push(player);
+                        }
                       }
                     });
                     const suggestions = [...startsWith, ...contains];
@@ -596,7 +532,7 @@ function App() {
                       <div
                         className="suggestion"
                         key={idx}
-                        onClick={() => { setPlayerName(suggestion.name); setShowSuggestions(false); }}
+                        onClick={() => handleSuggestionClick(suggestion.name)}
                       >
                         {suggestion.name}
                       </div>
@@ -650,11 +586,38 @@ function App() {
           </div>
         )}
 
+        {/* portrait pop */}
+        {showPortraitModal && selectedPlayer && (
+          <div className="help-modal-overlay" onClick={() => {
+            setShowPortraitModal(false);
+            setPortraitModalDismissed(true);
+          }}>
+            <div className="help-modal" onClick={e => e.stopPropagation()} style={{textAlign: 'center'}}>
+              <button
+                className="help-modal-close"
+                onClick={() => {
+                  setShowPortraitModal(false);
+                  setPortraitModalDismissed(true);
+                }}
+                aria-label="Close"
+              >×</button>
+              <h2>Player Revealed</h2>
+              <img
+                src={`${PUB}/images/${slugify(selectedPlayer.name)}-actual.png`}
+                alt={selectedPlayer.name}
+                className="actual"
+                style={{maxWidth: '100%', height: 'auto', margin: '16px 0'}}
+              />
+              <div style={{fontWeight: 500, fontSize: 18}}>{selectedPlayer?.name}</div>
+            </div>
+          </div>
+        )}
+
         <div className="game-info">
           <h3>Previous Guesses:</h3>
           <div className="info-box">
             <div className="info-box-inner">
-              {/* desktop header */}
+              {/* Desktop header */}
               <div className="info-item-wrapper title">
                 <div className="info-label">Name</div>
                 <div className="info-label">Team</div>
@@ -665,7 +628,7 @@ function App() {
                 <div className="info-label">#</div>
               </div>
 
-              {/* mobile header */}
+              {/* Mobile header */}
               <div className="mobile-grid-head" aria-hidden="true">
                 <div>Team</div><div>Pos</div><div>Conf</div>
                 <div>Ht</div><div>Age</div><div>#</div>
@@ -756,15 +719,17 @@ function App() {
 function getFeedbackClass(feedback) {
   if (!feedback) return 'incorrect';
   if (feedback.emoji === '✅') return 'correct';
-  if (feedback.emoji === '🟡') return 'close';
+  if (feedback.isClose) return 'close';
   return 'incorrect';
 }
+
 function getFeedbackClassTeam(feedback) {
   if (!feedback) return 'incorrect';
   if (feedback.includes('✅')) return 'correct';
   if (feedback.includes('🟡')) return 'close';
   return 'incorrect';
 }
+
 function getFeedbackClassSimple(feedback) {
   if (!feedback) return 'incorrect';
   if (feedback === '✅') return 'correct';
@@ -772,10 +737,11 @@ function getFeedbackClassSimple(feedback) {
   return 'incorrect';
 }
 
-/* MM:SS shot clock (uses .shot-clock styles) */
+/* Shot clock (MM:SS) */
 function ShotClock({ seconds = 0 }) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
+
   return (
     <div className="shot-clock" aria-label="Timer">
       <span className="digits">
