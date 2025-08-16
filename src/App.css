@@ -29,7 +29,7 @@ body{ margin:0; background:#f5ecdf; color:#000; font-family:'Roboto',sans-serif;
 /* === BRAND (Sue head + bird-le) === */
 .brand{ display:flex; align-items:center; justify-content:center; gap:10px; margin:6px 0 8px; }
 .brand-head{
-  width:56px; height:56px; object-fit:cover;
+  width:156px; height:156px; object-fit:cover;
   transform: rotate(-12deg);
   border:none !important;            /* remove tiny box */
   border-radius:0 !important;
@@ -263,3 +263,110 @@ button{ margin-top:8px; }                   /* was 10px */
   }
   button{ margin-top:6px; }
 }
+
+/* Prevent mobile overflow of the white guess card inside the black outline */
+.guess{
+  box-sizing: border-box;     /* include the 2px border in the width calc */
+  max-width: 100%;            /* belt-and-suspenders */
+}
+
+/* Give the inner content a hair more breathing room on phones */
+@media (max-width:520px){
+  .info-box{
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* === fluid mobile sizing (no horizontal scroll) === */
+html, body, #root { width:100%; max-width:100%; overflow-x:hidden; }
+
+/* fluid brand */
+.brand-head{
+  width: clamp(40px, 10vw, 56px);
+  height: clamp(40px, 10vw, 56px);
+}
+.brand-text, .brand-dash, .brand-le{
+  font-size: clamp(32px, 9vw, 48px);
+}
+
+/* fluid pills + clock */
+.gm-seg{ width: clamp(22px, 7vw, 32px); height: clamp(8px, 2.2vw, 10px); }
+.shot-clock .digits{ font-size: clamp(22px, 6.4vw, 28px); }
+
+/* inputs/buttons fill but don’t feel huge */
+@media (max-width: 520px){
+  .App{ padding-left:10px; padding-right:10px; }
+  form, .search-container{ width:100%; }
+  input[type="text"]{
+    width:100%; max-width:none; margin-bottom:10px;
+    font-size: clamp(16px, 4.3vw, 18px);
+    padding: 10px 12px;
+  }
+  button{
+    font-size: clamp(16px, 4.3vw, 18px);
+    padding: 10px 18px;
+    margin-top: 8px;
+  }
+
+  /* Previous Guesses: edge-to-edge with gutter and no overflow */
+  .game-info{ width:100%; }
+  .info-box{
+    width: min(96vw, 720px);
+    max-width:none;
+    margin-left:auto; margin-right:auto;
+    padding-left:8px; padding-right:8px;
+    box-sizing:border-box;
+  }
+  .info-box-inner{ min-width:0 !important; }
+
+  /* tighten headings a hair */
+  .game-info h3{ font-size: clamp(18px, 4.6vw, 20px); }
+}
+
+/* tiny phones (<=360px) – nudge spacing down a bit more */
+@media (max-width: 360px){
+  .guesses-meter{ gap:5px; }
+  .brand{ gap:8px; }
+}
+
+/* --- FIX: no horizontal scroll + symmetric mobile gutters --- */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+/* unified page gutters with iOS safe-area support */
+:root {
+  --page-gutter: clamp(12px, 4vw, 20px);
+}
+.App {
+  padding-left: var(--page-gutter);
+  padding-right: var(--page-gutter);
+}
+@supports (padding: max(0px)) {
+  .App {
+    padding-left: max(var(--page-gutter), env(safe-area-inset-left));
+    padding-right: max(var(--page-gutter), env(safe-area-inset-right));
+  }
+}
+
+/* make key blocks use full phone width (no “squished” feel) */
+@media (max-width: 520px) {
+  .search-container,
+  .info-box {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  /* let the input truly fill the row */
+  input[type="text"] {
+    width: 100%;
+    max-width: none;
+  }
+  /* a touch less page padding on small screens */
+  :root { --page-gutter: clamp(10px, 4vw, 16px); }
+}
+

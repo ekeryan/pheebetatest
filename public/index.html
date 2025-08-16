@@ -3,15 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+
+    <!-- Mobile-friendly viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+
+    <!-- PWA / iOS niceties -->
+    <meta name="theme-color" content="#f5ecdf" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="bird-le" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- SEO -->
+    <meta name="description" content="bird-le — daily WNBA player guessing game." />
+
+    <!-- Icons / manifest -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>React App</title>
+
+    <!-- Font preconnects (keeps your CSS @import; this just speeds it up) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <title>bird-le</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
