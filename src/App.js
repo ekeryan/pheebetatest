@@ -83,7 +83,7 @@ const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) 
 
 function pickSolutionFor(rotationKey) {
   const seed = xmur3(rotationKey)();
-  const rand = mulberry32(seed);
+  const rand = mulberry32(seed);            // ✅ fixed: no stray variable
   const idx = Math.floor(rand() * playersStable.length);
   return playersStable[idx];
 }
@@ -241,7 +241,6 @@ function App() {
     Object.keys(localStorage)
       .filter(k => k.startsWith(`${STORAGE_PREFIX}:game:`) && k !== gKey)
       .forEach(k => localStorage.removeItem(k));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey, archiveMode]);
 
   // persist
@@ -559,7 +558,6 @@ function App() {
     }
   };
 
-  // 🔐 Save handle + team with duplicate-@ handling
   const saveHandle = async () => {
     const clean = normalizeHandle(handle);
     if (!clean) {
@@ -573,42 +571,37 @@ function App() {
     localStorage.setItem('phee:team', teamChoice || '');
 
     if (!supaReady) {
-      // still show feedback inline so it doesn't look broken
-      setLbError('Saved locally. Leaderboard backend is offline.');
+      setLbError('Leaderboard backend is offline. Saved locally.');
       return;
     }
 
-    try {
-      // RPC; your SQL raises HANDLE_TAKEN when duplicate/other device
-      const { error } = await upsertStreak({
-        handle: clean,
-        currentStreak,
-        bestStreak,
-        rotationKey,
-        deviceId: DEVICE_ID,
-        team: teamChoice || null,
-      });
+    const { error } = await upsertStreak({
+      handle: clean,
+      currentStreak,
+      bestStreak,
+      rotationKey,
+      deviceId: DEVICE_ID,
+      team: teamChoice || null,
+    });
 
-      if (error) {
-        const msgText = String(error.message || error.details || '');
-        const dup =
-          /HANDLE_TAKEN/i.test(msgText) ||
-          /already.*taken/i.test(msgText) ||
-          /unique/i.test(msgText);
-        setLbError(dup ? '❌ That @ is already claimed on another device.' : `❌ Save failed: ${msgText || 'unknown error'}`);
-        return;
-      }
+    if (error) {
+      const msg =
+        /HANDLE_TAKEN/i.test(error.message || '') ||
+        /HANDLE_TAKEN/i.test(error.details || '') ||
+        /unique/i.test(error.message || '')
+          ? '❌ That @ is already claimed on another device.'
+          : `❌ Save failed: ${error.message || 'unknown error'}`;
+      setLbError(msg);
+      return;
+    }
 
-      // success → clear error + refresh leaderboard
-      setLbError('');
-      const { data, error: lbErr } = await loadLeaderboard();
-      if (lbErr) {
-        setLbError('Could not load leaderboard.');
-      } else {
-        setLeaderboard(data || []);
-      }
-    } catch (e) {
-      setLbError(`❌ Save failed: ${e.message || e}`);
+    // success → reload board
+    setLbError('');
+    const { data, error: lbErr } = await loadLeaderboard();
+    if (lbErr) {
+      setLbError('Could not load leaderboard.');
+    } else {
+      setLeaderboard(data || []);
     }
   };
 
@@ -641,31 +634,30 @@ function App() {
     return '⬛';
   };
 
-const formatShareText = () => {
-  const gameNumber = rotationKey;
-  const guessesUsed = triesTaken;
-  const maxGuesses = previousGuesses.length;
-  const win = gameOver && message.includes('Correct!');
-  const guessCount = win ? guessesUsed : 'X';
+  const formatShareText = () => {
+    const gameNumber = rotationKey;
+    const guessesUsed = triesTaken;
+    const maxGuesses = previousGuesses.length;
+    const win = gameOver && message.includes('Correct!');
+    const guessCount = win ? guessesUsed : 'X';
 
-  let result = `PHEE ${gameNumber} ${guessCount}/${maxGuesses}${archiveMode ? ' (ARCHIVE)' : ''}\n\n`;
+    let result = `PHEE ${gameNumber} ${guessCount}/${maxGuesses}${archiveMode ? ' (ARCHIVE)' : ''}\n\n`;
 
-  previousGuesses.forEach((guess) => {
-    if (guess) {
-      result += [
-        getEmoji(guess.feedback.team, 'team'),
-        getEmoji(guess.feedback.position, 'position'),
-        getEmoji(guess.feedback.conf, 'conf'),
-        getEmoji(guess.feedback.height, 'height'),
-        getEmoji(guess.feedback.age, 'age'),
-        getEmoji(guess.feedback.numberMatch, 'number')
-      ].join('') + '\n';
-    }
-  });
+    previousGuesses.forEach((guess) => {
+      if (guess) {
+        result += [
+          getEmoji(guess.feedback.team, 'team'),
+          getEmoji(guess.feedback.position, 'position'),
+          getEmoji(guess.feedback.conf, 'conf'),
+          getEmoji(guess.feedback.height, 'height'),
+          getEmoji(guess.feedback.age, 'age'),
+          getEmoji(guess.feedback.numberMatch, 'number')
+        ].join('') + '\n';
+      }
+    });
 
-  return result.trim();
-};
-
+    return result.trim();
+  };
 
   const handleShare = async () => {
     const shareText = formatShareText();
@@ -712,6 +704,24 @@ const formatShareText = () => {
         >
           ?
         </div>
+
+        {/* 🔝 put both circle buttons under the help icon (top-right) */}
+        <button
+          className="streak-fab"
+          title="Streaks & Leaderboard"
+          onClick={openStreakModal}
+          aria-label="Streaks & Leaderboard"
+        >
+          🔥
+        </button>
+        <button
+          className="archive-fab"
+          title="Archive Day"
+          onClick={() => setShowArchive(true)}
+          aria-label="Archive Day"
+        >
+          ⏪
+        </button>
 
         {showHelp && (
           <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
@@ -970,25 +980,6 @@ const formatShareText = () => {
         {/* === /Previous Guesses === */}
       </div>
 
-      {/* 🔥 Floating streak button */}
-      <button
-        className="streak-fab"
-        title="Streaks & Leaderboard"
-        onClick={openStreakModal}
-      >
-        🔥
-      </button>
-
-      {/* ⏪ Archive Day FAB (left corner) */}
-      <button
-        className="archive-fab"
-        title="Archive Day"
-        onClick={() => setShowArchive(true)}
-        aria-label="Archive Day"
-      >
-        ⏪
-      </button>
-
       {/* 🔥 Streaks/Leaderboard modal */}
       {showStreak && (
         <div className="streak-modal-overlay" onClick={() => setShowStreak(false)}>
@@ -1017,9 +1008,6 @@ const formatShareText = () => {
                 />
                 <button className="handle-save" onClick={saveHandle}>Save</button>
               </div>
-
-              {/* Inline error/info for handle save */}
-              {lbError && <div className="lb-error" style={{ marginTop: 6, textAlign: 'left' }}>{lbError}</div>}
 
               {/* Team logo picker */}
               <div className="team-picker">
