@@ -356,7 +356,7 @@ html, body {
   position: fixed;
   top: 60px;                    /* ← under the help ? */
   right: 16px;
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   background: #FFD700;
   border: none; cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,.2);
@@ -469,9 +469,9 @@ html, body {
 /* ===== Archive Day FAB, modal & banner ===== */
 .archive-fab{
   position: fixed;
-  top: 122px;                 /* ← stacked below streak-fab */
+  top: 108px;                 /* ← stacked below streak-fab */
   right: 16px;
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   background: #fff; color:#111; border:2px solid #000; cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,.2);
   font-size: 24px; line-height: 1;
