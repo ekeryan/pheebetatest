@@ -370,3 +370,96 @@ html, body {
   :root { --page-gutter: clamp(10px, 4vw, 16px); }
 }
 
+/* ===== Streaks / Leaderboard UI ===== */
+.streak-fab{
+  position: fixed;
+  bottom: 16px; right: 16px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #FFD700;
+  border: none; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+  font-size: 26px; line-height: 1;
+  display:flex; align-items:center; justify-content:center;
+  z-index: 3000;
+}
+.streak-fab:hover{ background:#FFCC00; }
+
+.streak-modal-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 3100;
+  display:flex; align-items:center; justify-content:center;
+}
+.streak-modal{
+  background:#fff;
+  border-radius: 12px;
+  padding: 22px 18px 18px;
+  width: min(680px, 92vw);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  position: relative;
+  animation: fadeIn .2s;
+}
+.streak-close{
+  position:absolute; top:8px; right:10px;
+  background:none; border:none; font-size:22px; cursor:pointer; color:#888;
+}
+.streak-close:hover{ color:#222; }
+
+.streak-title{
+  margin: 0 0 10px;
+  font-family: 'Schoolbell', cursive;
+  font-size: 26px;
+}
+.streak-my{ margin-bottom: 10px; }
+.streak-row{ display:flex; gap:10px; margin-bottom:10px; }
+.streak-chip{
+  display:inline-flex; gap:6px; align-items:center;
+  padding: 6px 10px; border-radius: 10px;
+  border: 2px dashed #FF5910;
+  background: #fff9f4; color:#111;
+  font-family:'Schoolbell', cursive;
+}
+
+.handle-row{
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.handle-label{ font-weight:600; }
+.handle-input{
+  flex: 1 1 200px;
+  min-width: 160px;
+  padding: 8px 10px;
+  border:2px solid #000; border-radius:6px;
+  font-size: 1rem;
+}
+.handle-save{
+  background:#FFD700; border:none; border-radius:6px; padding:8px 12px; cursor:pointer;
+  font-family:'Chakra Petch', serif;
+}
+.handle-save:hover{ background:#FFCC00; }
+.streak-note{ margin-top:6px; font-size:.95rem; color:#555; }
+
+.lb-title{
+  margin: 10px 0 6px;
+  font-family: 'Chakra Petch', serif;
+  font-size: 16px;
+}
+.lb-box{ max-height: 50vh; overflow:auto; border:1px solid #eee; border-radius:10px; }
+
+.streak-table{
+  width:100%; border-collapse: collapse; background:#fff;
+  font-family: 'Roboto', sans-serif;
+}
+.streak-table th, .streak-table td{
+  padding: 10px 12px; border-bottom:1px solid #f0f0f0; text-align:left;
+}
+.streak-table thead th{
+  position: sticky; top:0; background:#fff; z-index:1;
+}
+.streak-table tr.me td{
+  background: #fff7d6;
+  font-weight: 600;
+}
+.lb-loading, .lb-error{
+  padding: 16px; text-align:center;
+}
+

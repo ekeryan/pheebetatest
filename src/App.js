@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import players from './players';
 import './App.css';
+import { supabase } from './supabaseClient'; // keeps the "ready" check
+import { loadLeaderboard, upsertStreak } from './streaks';
 
 // paths
 const PUB = process.env.PUBLIC_URL;
@@ -31,6 +33,16 @@ function getCTParts(d = new Date()) {
   const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
   return parts;
 }
+const ctDateStr = (d = new Date()) => {
+  const p = getCTParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+};
+const yesterdayCt = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const p = getCTParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
+};
 
 function getRotationKey() {
   const p = getCTParts();
@@ -110,6 +122,25 @@ function App() {
   const [showPortraitModal, setShowPortraitModal] = useState(false);
   const [portraitModalDismissed, setPortraitModalDismissed] = useState(false);
   const intervalRef = useRef(null);
+
+  // keep @handles tidy & short (no '@' allowed in the field)
+  const normalizeHandle = (h = '') =>
+    h.trim()
+     .replace(/^@+/, '')       // strip leading @s
+     .replace(/\s+/g, '')      // no spaces
+     .replace(/[^\w.-]/g, '')  // only letters/numbers/_ . -
+     .slice(0, 20);            // max 20 chars
+
+  // ✅ Streak/leaderboard state
+  const [showStreak, setShowStreak] = useState(false);
+  const [handle, setHandle] = useState(localStorage.getItem('phee:handle') || '');
+  const [currentStreak, setCurrentStreak] = useState(parseInt(localStorage.getItem('phee:streak') || '0', 10));
+  const [bestStreak, setBestStreak] = useState(parseInt(localStorage.getItem('phee:beststreak') || '0', 10));
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [lbLoading, setLbLoading] = useState(false);
+  const [lbError, setLbError] = useState('');
+
+  const supaReady = !!supabase;
 
   const [rotationKey, setRotationKey] = useState(getRotationKey());
   useEffect(() => {
@@ -259,19 +290,19 @@ function App() {
 
       if (foundPlayer.id === selectedPlayer.id) {
         setShowSilhouette(true);
-        handleGameEnd(`🎉 Correct! The player was ${selectedPlayer.name}!`);
+        handleGameEnd(`🎉 Correct! The player was ${selectedPlayer.name}!`, true); // ✅ pass win
       } else {
         setGuessedPlayers(prev => [...prev, correctedPlayerName]);
         setGuessesLeft(prev => prev > 0 ? prev - 1 : 0);
         setMessage("❌ Incorrect! Try again.");
         if (guessesLeft <= 1) {
-          handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
+          handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`, false);
         }
       }
     } else {
       setMessage("❌ Player not found! Make sure you're guessing the correct name.");
       if (guessesLeft <= 1) {
-        handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`);
+        handleGameEnd(`Game Over! The correct player was ${selectedPlayer.name}.`, false);
       }
     }
 
@@ -306,7 +337,7 @@ function App() {
     feedback.confText = `${guessedPlayer.conf} ${guessedPlayer.conf === selectedPlayer.conf ? '✅' : '❌'}`;
     feedback.conf = guessedPlayer.conf === selectedPlayer.conf ? '✅' : '❌';
 
-    // height — always show arrow for direction; mark close with isClose
+    // height
     const parseHeight = (height) => {
       const [feet, inches] = height.split("'").map((part) => parseInt(part.trim(), 10));
       return (feet * 12) + inches;
@@ -314,34 +345,66 @@ function App() {
     const guessedHeightInches = parseHeight(guessedPlayer.height);
     const selectedHeightInches = parseHeight(selectedPlayer.height);
     const heightDiff = Math.abs(guessedHeightInches - selectedHeightInches);
+
     feedback.height = {
       value: guessedHeightInches === selectedHeightInches ? guessedPlayer.height : `${guessedPlayer.height}`,
       emoji: guessedHeightInches === selectedHeightInches
         ? '✅'
-        : (guessedHeightInches < selectedHeightInches ? '⬆️' : '⬇️'),
-      isClose: heightDiff <= 2
+        : heightDiff <= 2
+          ? '🟡'
+          : guessedHeightInches < selectedHeightInches
+            ? '⬆️'
+            : '⬇️',
+      className: guessedHeightInches === selectedHeightInches
+        ? ''
+        : heightDiff <= 2
+          ? 'yellow'
+          : guessedHeightInches < selectedHeightInches
+            ? 'arrow-up'
+            : 'arrow-down',
     };
 
-    // age — always arrow; yellow when within ±2
+    // age
     const ageDiff = Math.abs(guessedPlayer.age - selectedPlayer.age);
     feedback.age = {
       value: guessedPlayer.age === selectedPlayer.age ? guessedPlayer.age : `${guessedPlayer.age}`,
       emoji: guessedPlayer.age === selectedPlayer.age
         ? '✅'
-        : (guessedPlayer.age < selectedPlayer.age ? '⬆️' : '⬇️'),
-      isClose: ageDiff <= 2
+        : ageDiff <= 2
+          ? '🟡'
+          : guessedPlayer.age < selectedPlayer.age
+            ? '⬆️'
+            : '⬇️',
+      className: guessedPlayer.age === selectedPlayer.age
+        ? ''
+        : ageDiff <= 2
+          ? 'yellow'
+          : guessedPlayer.age < selectedPlayer.age
+            ? 'arrow-up'
+            : 'arrow-down',
     };
 
-    // number — always arrow; yellow when within ±2
+    // number
     const guessedNumber = parseInt(guessedPlayer.number, 10);
     const selectedNumber = parseInt(selectedPlayer.number, 10);
     const numberDiff = Math.abs(guessedNumber - selectedNumber);
+
     feedback.numberMatch = {
       value: guessedNumber === selectedNumber ? guessedNumber : `${guessedNumber}`,
       emoji: guessedNumber === selectedNumber
         ? '✅'
-        : (guessedNumber < selectedNumber ? '⬆️' : '⬇️'),
-      isClose: numberDiff <= 2
+        : numberDiff <= 2
+          ? '🟡'
+          : guessedNumber < selectedNumber
+            ? '⬆️'
+            : '⬇️',
+      className: guessedNumber === selectedNumber
+        ? ''
+        : numberDiff <= 2
+          ? 'yellow'
+          : guessedNumber < selectedNumber
+            ? 'arrow-up'
+            : 'arrow-down',
     };
 
     return feedback;
@@ -370,7 +433,53 @@ function App() {
     setShowSuggestions(false);
   };
 
-  const handleGameEnd = (msg) => {
+  // ✅ update streaks + sync to Supabase on game end (uses helper/upsert)
+  const updateStreakAndSync = async (won) => {
+    if (!won) {
+      // If you want to reset streak on a loss, uncomment:
+      // setCurrentStreak(0);
+      // localStorage.setItem('phee:streak', '0');
+      return;
+    }
+
+    const today = ctDateStr();
+    const last = localStorage.getItem('phee:lastPlay') || '';
+    const yday = yesterdayCt();
+
+    let newStreak = currentStreak;
+    if (last === today) {
+      // already counted today
+    } else if (last === yday) {
+      newStreak = currentStreak + 1;
+    } else {
+      newStreak = 1;
+    }
+
+    const newBest = Math.max(bestStreak, newStreak);
+
+    setCurrentStreak(newStreak);
+    setBestStreak(newBest);
+    localStorage.setItem('phee:streak', String(newStreak));
+    localStorage.setItem('phee:beststreak', String(newBest));
+    localStorage.setItem('phee:lastPlay', today);
+
+    // push to DB if env + handle exist
+    const clean = normalizeHandle(handle);
+    if (supaReady && clean) {
+      try {
+        await upsertStreak({
+          handle: clean,
+          currentStreak: newStreak,
+          bestStreak: newBest,
+          rotationKey
+        });
+      } catch (e) {
+        console.warn('Supabase upsert failed:', e);
+      }
+    }
+  };
+
+  const handleGameEnd = (msg, won) => {
     clearInterval(intervalRef.current);
     setMessage(msg);
     setGameOver(true);
@@ -378,6 +487,44 @@ function App() {
     try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
     setShowPortraitModal(true);
     setPortraitModalDismissed(false);
+    updateStreakAndSync(!!won); // ✅ streak
+  };
+
+  // Leaderboard fetch (uses helper/loadLeaderboard)
+  const openStreakModal = async () => {
+    setShowStreak(true);
+    if (!supaReady) return;
+    setLbLoading(true);
+    setLbError('');
+    try {
+      const { data, error } = await loadLeaderboard();
+      if (error) throw error;
+      setLeaderboard(data || []);
+    } catch (e) {
+      setLbError('Could not load leaderboard.');
+    } finally {
+      setLbLoading(false);
+    }
+  };
+
+  const saveHandle = async () => {
+    const clean = normalizeHandle(handle);
+    setHandle(clean);
+    localStorage.setItem('phee:handle', clean);
+
+    // push current local streaks up immediately
+    if (supaReady && clean) {
+      try {
+        await upsertStreak({
+          handle: clean,
+          currentStreak,
+          bestStreak,
+          rotationKey
+        });
+      } catch {}
+      // refresh board
+      openStreakModal();
+    }
   };
 
   const getEmoji = (feedback, type) => {
@@ -386,10 +533,9 @@ function App() {
       if (feedback.includes('🟡')) return '🟨';
       return '⬛';
     }
-    // For numeric-ish (ht/age/number): green if exact, yellow only when close (isClose), else black
     if (type === 'height' || type === 'age' || type === 'number') {
       if (feedback.emoji === '✅') return '🟩';
-      if (feedback.isClose) return '🟨';
+      if (feedback.emoji === '⬆️' || feedback.emoji === '⬇️') return '🟨';
       return '⬛';
     }
     return '⬛';
@@ -471,6 +617,7 @@ function App() {
                 <li><b>Guess</b>: Enter the full name of a player and click Guess.</li>
                 <li><b>Show/Hide Silhouette</b>: Toggle the silhouette/headshot.</li>
               </ul>
+              <p><b>Note:</b> Not all players have a jumpshot clip yet.</p>
             </div>
           </div>
         )}
@@ -586,7 +733,7 @@ function App() {
           </div>
         )}
 
-        {/* portrait pop */}
+        {/* portrait pop (after result) */}
         {showPortraitModal && selectedPlayer && (
           <div className="help-modal-overlay" onClick={() => {
             setShowPortraitModal(false);
@@ -613,6 +760,7 @@ function App() {
           </div>
         )}
 
+        {/* === Previous Guesses table === */}
         <div className="game-info">
           <h3>Previous Guesses:</h3>
           <div className="info-box">
@@ -630,8 +778,7 @@ function App() {
 
               {/* Mobile header */}
               <div className="mobile-grid-head" aria-hidden="true">
-                <div>Team</div><div>Pos</div><div>Conf</div>
-                <div>Ht</div><div>Age</div><div>#</div>
+                <div>Team</div><div>Pos</div><div>Conf</div><div>Ht</div><div>Age</div><div>#</div>
               </div>
 
               {previousGuesses.map((prevGuess, index) => (
@@ -651,7 +798,7 @@ function App() {
 
                   <div className={`info-item ${prevGuess ? getFeedbackClassTeam(prevGuess.feedback.team) : ''} team-cell`}>
                     {prevGuess && (
-                      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%'}}>
+                      <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:'100%'}}>
                         {(() => {
                           const code = prevGuess?.feedback?.team
                             ? prevGuess.feedback.team.split(' ')[0]
@@ -661,11 +808,11 @@ function App() {
                             <img
                               src={`${PUB}/logos/${file}.png`}
                               alt={code}
-                              style={{height: 24, marginBottom: 2, objectFit: 'contain'}}
+                              style={{height:24, marginBottom:2, objectFit:'contain'}}
                             />
                           );
                         })()}
-                        <span style={{fontSize: '1em', marginTop: 2}}>
+                        <span style={{fontSize:'1em', marginTop:2}}>
                           {prevGuess?.feedback?.team ? prevGuess.feedback.team.split(' ')[0] : ''}
                         </span>
                       </div>
@@ -711,7 +858,84 @@ function App() {
             </div>
           </div>
         </div>
-      </div>        
+        {/* === /Previous Guesses === */}
+      </div>
+
+      {/* 🔥 Floating streak button */}
+      <button
+        className="streak-fab"
+        title="Streaks & Leaderboard"
+        onClick={openStreakModal}
+      >
+        🔥
+      </button>
+
+      {/* 🔥 Streaks/Leaderboard modal */}
+      {showStreak && (
+        <div className="streak-modal-overlay" onClick={() => setShowStreak(false)}>
+          <div className="streak-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="streak-close" onClick={() => setShowStreak(false)} aria-label="Close">×</button>
+
+            <h2 className="streak-title">Streaks</h2>
+
+            <div className="streak-my">
+              <div className="streak-row">
+                <div className="streak-chip">Current: <b>{currentStreak}</b></div>
+                <div className="streak-chip">Best: <b>{bestStreak}</b></div>
+              </div>
+
+              <div className="handle-row">
+                <label htmlFor="handle" className="handle-label">@ Handle</label>
+                <input
+                  id="handle"
+                  className="handle-input"
+                  placeholder="yourname"   // no '@' in the field
+                  value={handle}
+                  inputMode="text"
+                  pattern="[A-Za-z0-9_.-]*"
+                  title="Use letters, numbers, underscore, dot, or dash"
+                  onChange={(e) => setHandle(normalizeHandle(e.target.value))}
+                />
+                <button className="handle-save" onClick={saveHandle}>Save</button>
+              </div>
+              {!supaReady && (
+                <div className="streak-note">
+                  Leaderboard is offline (missing Supabase env keys). Local streaks still work.
+                </div>
+              )}
+            </div>
+
+            <h3 className="lb-title">Leaderboard (Best Streak)</h3>
+
+            <div className="lb-box">
+              {lbLoading ? (
+                <div className="lb-loading">Loading…</div>
+              ) : lbError ? (
+                <div className="lb-error">{lbError}</div>
+              ) : (
+                <table className="streak-table">
+                  <thead>
+                    <tr><th>#</th><th>Handle</th><th>Best</th><th>Current</th></tr>
+                  </thead>
+                  <tbody>
+                    {(leaderboard || []).map((r, i) => (
+                      <tr key={r.handle || i} className={handle && r.handle === handle ? 'me' : ''}>
+                        <td>{i + 1}</td>
+                        <td>@{r.handle}</td>
+                        <td>{(r.best_streak ?? 0)}</td>
+                        <td>{(r.current_streak ?? r.streak ?? 0)}</td>
+                      </tr>
+                    ))}
+                    {(!leaderboard || leaderboard.length === 0) && (
+                      <tr><td colSpan="4" style={{textAlign:'center', opacity:.7}}>No entries yet.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -719,7 +943,7 @@ function App() {
 function getFeedbackClass(feedback) {
   if (!feedback) return 'incorrect';
   if (feedback.emoji === '✅') return 'correct';
-  if (feedback.isClose) return 'close';
+  if (feedback.emoji === '🟡') return 'close';
   return 'incorrect';
 }
 
