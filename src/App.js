@@ -88,6 +88,22 @@ function pickSolutionFor(rotationKey) {
   return playersStable[idx];
 }
 
+// ================= Device ID binding (anti-hijack) =================
+function getDeviceId() {
+  let id = localStorage.getItem('phee:device_id');
+  if (id) return id;
+  try {
+    const buf = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(buf);
+    id = [...buf].map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    id = String(Math.random()).slice(2) + String(Date.now());
+  }
+  localStorage.setItem('phee:device_id', id);
+  return id;
+}
+const DEVICE_ID = getDeviceId();
+
 // ================= brand =================
 const BIRD_HEAD = `${PUB}/branding/sue-bird-head.png`;
 
@@ -103,6 +119,17 @@ function Brand() {
     </div>
   );
 }
+
+// team list for picker (adjust to your available logo files)
+const TEAM_CODES = ['ATL','CHI','CON','DAL','IND','LVA','MIN','NYL','PHX','SEA','WAS'];
+
+// keep @handles tidy & short (no '@' allowed in the field)
+const normalizeHandle = (h = '') =>
+  h.trim()
+   .replace(/^@+/, '')       // strip leading @s
+   .replace(/\s+/g, '')      // no spaces
+   .replace(/[^\w.-]/g, '')  // only letters/numbers/_ . -
+   .slice(0, 20);            // max 20 chars
 
 // ================= app =================
 function App() {
@@ -123,17 +150,10 @@ function App() {
   const [portraitModalDismissed, setPortraitModalDismissed] = useState(false);
   const intervalRef = useRef(null);
 
-  // keep @handles tidy & short (no '@' allowed in the field)
-  const normalizeHandle = (h = '') =>
-    h.trim()
-     .replace(/^@+/, '')       // strip leading @s
-     .replace(/\s+/g, '')      // no spaces
-     .replace(/[^\w.-]/g, '')  // only letters/numbers/_ . -
-     .slice(0, 20);            // max 20 chars
-
-  // ✅ Streak/leaderboard state
+  // 🔥 Streak/leaderboard + team/logo
   const [showStreak, setShowStreak] = useState(false);
   const [handle, setHandle] = useState(localStorage.getItem('phee:handle') || '');
+  const [teamChoice, setTeamChoice] = useState(localStorage.getItem('phee:team') || '');
   const [currentStreak, setCurrentStreak] = useState(parseInt(localStorage.getItem('phee:streak') || '0', 10));
   const [bestStreak, setBestStreak] = useState(parseInt(localStorage.getItem('phee:beststreak') || '0', 10));
   const [leaderboard, setLeaderboard] = useState([]);
@@ -142,14 +162,22 @@ function App() {
 
   const supaReady = !!supabase;
 
+  // ⏪ Archive Day
+  const [showArchive, setShowArchive] = useState(false);
+  const [archiveDate, setArchiveDate] = useState(ctDateStr());
+  const [archiveMode, setArchiveMode] = useState(false);
+
   const [rotationKey, setRotationKey] = useState(getRotationKey());
+
+  // auto-advance rotation key (but NOT in archive mode)
   useEffect(() => {
+    if (archiveMode) return;
     const tick = setInterval(() => {
       const nextKey = getRotationKey();
       setRotationKey((prev) => (prev === nextKey ? prev : nextKey));
     }, DEBUG ? 5_000 : 60_000);
     return () => clearInterval(tick);
-  }, []);
+  }, [archiveMode]);
 
   // load/hydrate
   useEffect(() => {
@@ -172,7 +200,7 @@ function App() {
 
     try {
       const raw = localStorage.getItem(gKey);
-      if (raw) {
+      if (raw && !archiveMode) {
         const s = JSON.parse(raw);
         if (typeof s.guessesLeft === 'number') setGuessesLeft(s.guessesLeft);
         if (Array.isArray(s.previousGuesses)) setPreviousGuesses(s.previousGuesses);
@@ -193,18 +221,19 @@ function App() {
           setPortraitModalDismissed(true);
         }
       } else {
-        if (locked) {
+        // fresh state; archive mode ignores lock
+        if (locked && !archiveMode) {
           setGameOver(true);
           setShowActualPortrait(true);
           setShowPortraitModal(false);
           setPortraitModalDismissed(true);
           setMessage('✅ Already completed for today.');
         } else {
-          resetGameState();
+          resetGameState(true);
         }
       }
     } catch {
-      resetGameState();
+      resetGameState(true);
     }
 
     startTimer();
@@ -213,7 +242,7 @@ function App() {
       .filter(k => k.startsWith(`${STORAGE_PREFIX}:game:`) && k !== gKey)
       .forEach(k => localStorage.removeItem(k));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotationKey]);
+  }, [rotationKey, archiveMode]);
 
   // persist
   useEffect(() => {
@@ -228,17 +257,18 @@ function App() {
       guessedPlayers,
       timer,
       timerSavedAt: Date.now(),
-      version: 2,
+      version: 3,
       savedAt: Date.now(),
+      archiveMode,
     };
     try { localStorage.setItem(gKey, JSON.stringify(gameState)); } catch {}
   }, [
     rotationKey, guessesLeft, previousGuesses, gameOver,
-    message, triesTaken, guessedPlayers, timer
+    message, triesTaken, guessedPlayers, timer, archiveMode
   ]);
 
-  const resetGameState = () => {
-    if (isLocked(rotationKey) && !DEBUG) return;
+  const resetGameState = (force = false) => {
+    if (!archiveMode && isLocked(rotationKey) && !DEBUG && !force) return;
     setGuessesLeft(8);
     setPreviousGuesses(Array(8).fill(null));
     setGameOver(false);
@@ -420,7 +450,7 @@ function App() {
   const handlePlayAgain = () => {
     if (!DEBUG) return;
     try { localStorage.removeItem(lockKeyFor(rotationKey)); } catch {}
-    resetGameState();
+    resetGameState(true);
   };
 
   const handlePlayerNameChange = (e) => {
@@ -467,12 +497,27 @@ function App() {
     const clean = normalizeHandle(handle);
     if (supaReady && clean) {
       try {
-        await upsertStreak({
-          handle: clean,
-          currentStreak: newStreak,
-          bestStreak: newBest,
-          rotationKey
-        });
+        if (typeof upsertStreak === 'function') {
+          await upsertStreak({
+            handle: clean,
+            currentStreak: newStreak,
+            bestStreak: newBest,
+            rotationKey,
+            deviceId: DEVICE_ID,
+            team: teamChoice || null,
+          });
+        } else {
+          await supabase
+            .from('profiles')
+            .upsert({
+              handle: clean,
+              current_streak: newStreak,
+              best_streak: newBest,
+              device_id: DEVICE_ID,
+              team: teamChoice || null,
+              last_played: today
+            }, { onConflict: 'handle,device_id' });
+        }
       } catch (e) {
         console.warn('Supabase upsert failed:', e);
       }
@@ -484,10 +529,17 @@ function App() {
     setMessage(msg);
     setGameOver(true);
     setShowActualPortrait(true);
-    try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
-    setShowPortraitModal(true);
-    setPortraitModalDismissed(false);
-    updateStreakAndSync(!!won); // ✅ streak
+
+    if (!archiveMode) {
+      try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
+      setShowPortraitModal(true);
+      setPortraitModalDismissed(false);
+      updateStreakAndSync(!!won); // ✅ streak only in live mode
+    } else {
+      // Archive mode: no lock/streaks
+      setShowPortraitModal(true);
+      setPortraitModalDismissed(false);
+    }
   };
 
   // Leaderboard fetch (uses helper/loadLeaderboard)
@@ -507,24 +559,72 @@ function App() {
     }
   };
 
+  // 🔐 Save handle + team with duplicate-@ handling
   const saveHandle = async () => {
     const clean = normalizeHandle(handle);
+    if (!clean) {
+      setLbError('Pick a handle first.');
+      return;
+    }
+
+    // persist locally right away
     setHandle(clean);
     localStorage.setItem('phee:handle', clean);
+    localStorage.setItem('phee:team', teamChoice || '');
 
-    // push current local streaks up immediately
-    if (supaReady && clean) {
-      try {
-        await upsertStreak({
-          handle: clean,
-          currentStreak,
-          bestStreak,
-          rotationKey
-        });
-      } catch {}
-      // refresh board
-      openStreakModal();
+    if (!supaReady) {
+      // still show feedback inline so it doesn't look broken
+      setLbError('Saved locally. Leaderboard backend is offline.');
+      return;
     }
+
+    try {
+      // RPC; your SQL raises HANDLE_TAKEN when duplicate/other device
+      const { error } = await upsertStreak({
+        handle: clean,
+        currentStreak,
+        bestStreak,
+        rotationKey,
+        deviceId: DEVICE_ID,
+        team: teamChoice || null,
+      });
+
+      if (error) {
+        const msgText = String(error.message || error.details || '');
+        const dup =
+          /HANDLE_TAKEN/i.test(msgText) ||
+          /already.*taken/i.test(msgText) ||
+          /unique/i.test(msgText);
+        setLbError(dup ? '❌ That @ is already claimed on another device.' : `❌ Save failed: ${msgText || 'unknown error'}`);
+        return;
+      }
+
+      // success → clear error + refresh leaderboard
+      setLbError('');
+      const { data, error: lbErr } = await loadLeaderboard();
+      if (lbErr) {
+        setLbError('Could not load leaderboard.');
+      } else {
+        setLeaderboard(data || []);
+      }
+    } catch (e) {
+      setLbError(`❌ Save failed: ${e.message || e}`);
+    }
+  };
+
+  // Archive actions
+  const goArchive = () => {
+    // YYYY-MM-DD -> rotation key
+    const key = `CT-${archiveDate}`;
+    setArchiveMode(true);
+    setRotationKey(key);
+    resetGameState(true);
+    setShowArchive(false);
+  };
+  const backToToday = () => {
+    setArchiveMode(false);
+    setRotationKey(getRotationKey());
+    resetGameState(true);
   };
 
   const getEmoji = (feedback, type) => {
@@ -541,30 +641,31 @@ function App() {
     return '⬛';
   };
 
-  const formatShareText = () => {
-    const gameNumber = rotationKey;
-    const guessesUsed = triesTaken;
-    const maxGuesses = previousGuesses.length;
-    const win = gameOver && message.includes('Correct!');
-    const guessCount = win ? guessesUsed : 'X';
+const formatShareText = () => {
+  const gameNumber = rotationKey;
+  const guessesUsed = triesTaken;
+  const maxGuesses = previousGuesses.length;
+  const win = gameOver && message.includes('Correct!');
+  const guessCount = win ? guessesUsed : 'X';
 
-    let result = `PHEE ${gameNumber} ${guessCount}/${maxGuesses}\n\n`;
+  let result = `PHEE ${gameNumber} ${guessCount}/${maxGuesses}${archiveMode ? ' (ARCHIVE)' : ''}\n\n`;
 
-    previousGuesses.forEach((guess) => {
-      if (guess) {
-        result += [
-          getEmoji(guess.feedback.team, 'team'),
-          getEmoji(guess.feedback.position, 'position'),
-          getEmoji(guess.feedback.conf, 'conf'),
-          getEmoji(guess.feedback.height, 'height'),
-          getEmoji(guess.feedback.age, 'age'),
-          getEmoji(guess.feedback.numberMatch, 'number')
-        ].join('') + '\n';
-      }
-    });
+  previousGuesses.forEach((guess) => {
+    if (guess) {
+      result += [
+        getEmoji(guess.feedback.team, 'team'),
+        getEmoji(guess.feedback.position, 'position'),
+        getEmoji(guess.feedback.conf, 'conf'),
+        getEmoji(guess.feedback.height, 'height'),
+        getEmoji(guess.feedback.age, 'age'),
+        getEmoji(guess.feedback.numberMatch, 'number')
+      ].join('') + '\n';
+    }
+  });
 
-    return result.trim();
-  };
+  return result.trim();
+};
+
 
   const handleShare = async () => {
     const shareText = formatShareText();
@@ -595,6 +696,14 @@ function App() {
   return (
     <div className="App">
       <div className="fade-in-main">
+        {/* Archive banner */}
+        {archiveMode && (
+          <div className="archive-banner">
+            <span>⏪ Archive Day: {rotationKey.replace(/^CT-/, '')} — no streaks/locks</span>
+            <button className="archive-exit" onClick={backToToday}>Back to Today</button>
+          </div>
+        )}
+
         {/* help */}
         <div
           className="help-icon"
@@ -870,6 +979,16 @@ function App() {
         🔥
       </button>
 
+      {/* ⏪ Archive Day FAB (left corner) */}
+      <button
+        className="archive-fab"
+        title="Archive Day"
+        onClick={() => setShowArchive(true)}
+        aria-label="Archive Day"
+      >
+        ⏪
+      </button>
+
       {/* 🔥 Streaks/Leaderboard modal */}
       {showStreak && (
         <div className="streak-modal-overlay" onClick={() => setShowStreak(false)}>
@@ -898,6 +1017,36 @@ function App() {
                 />
                 <button className="handle-save" onClick={saveHandle}>Save</button>
               </div>
+
+              {/* Inline error/info for handle save */}
+              {lbError && <div className="lb-error" style={{ marginTop: 6, textAlign: 'left' }}>{lbError}</div>}
+
+              {/* Team logo picker */}
+              <div className="team-picker">
+                <div className="team-picker-label">Team logo (optional)</div>
+                <div className="team-grid">
+                  {TEAM_CODES.map(code => {
+                    const file = teamCodeToFile(code);
+                    const active = teamChoice === code;
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        className={`team-btn ${active ? 'active' : ''}`}
+                        onClick={() => setTeamChoice(code)}
+                        title={code}
+                      >
+                        <img
+                          src={`${PUB}/logos/${file}.png`}
+                          alt={code}
+                          loading="lazy"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {!supaReady && (
                 <div className="streak-note">
                   Leaderboard is offline (missing Supabase env keys). Local streaks still work.
@@ -921,7 +1070,16 @@ function App() {
                     {(leaderboard || []).map((r, i) => (
                       <tr key={r.handle || i} className={handle && r.handle === handle ? 'me' : ''}>
                         <td>{i + 1}</td>
-                        <td>@{r.handle}</td>
+                        <td className="handle-cell">
+                          {r.team && (
+                            <img
+                              src={`${PUB}/logos/${teamCodeToFile(r.team)}.png`}
+                              alt={r.team}
+                              className="lb-team"
+                            />
+                          )}
+                          @{r.handle}
+                        </td>
                         <td>{(r.best_streak ?? 0)}</td>
                         <td>{(r.current_streak ?? r.streak ?? 0)}</td>
                       </tr>
@@ -932,6 +1090,30 @@ function App() {
                   </tbody>
                 </table>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ⏪ Archive modal */}
+      {showArchive && (
+        <div className="archive-modal-overlay" onClick={() => setShowArchive(false)}>
+          <div className="archive-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="archive-close" onClick={() => setShowArchive(false)} aria-label="Close">×</button>
+            <h2 className="archive-title">Archive Day</h2>
+            <p className="archive-sub">Play a past puzzle (no locks, no streak changes).</p>
+            <div className="archive-row">
+              <label htmlFor="archiveDate">Choose date</label>
+              <input
+                id="archiveDate"
+                type="date"
+                value={archiveDate}
+                onChange={(e) => setArchiveDate(e.target.value)}
+              />
+            </div>
+            <div className="archive-actions">
+              <button className="archive-go" onClick={goArchive}>Play This Day</button>
+              <button className="archive-cancel" onClick={() => setShowArchive(false)}>Cancel</button>
             </div>
           </div>
         </div>

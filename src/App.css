@@ -31,7 +31,7 @@ body{ margin:0; background:#f5ecdf; color:#000; font-family:'Roboto',sans-serif;
 .brand-head{
   width:156px; height:156px; object-fit:cover;
   transform: rotate(-12deg);
-  border:none !important;            /* remove tiny box */
+  border:none !important;
   border-radius:0 !important;
   background:transparent !important;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
@@ -241,15 +241,15 @@ button:disabled{ background:#ccc; color:#666; cursor:not-allowed; }
 }
 
 /* --- tighter vertical rhythm (desktop + shared) --- */
-.brand{ margin:4px 0 4px; }                 /* was 6px 0 8px */
-.guesses-meter{ margin:2px 0 6px; }         /* was 6px 0 10px */
-.gm-label{ top:-16px; font-size:13px; }     /* slightly closer to pills */
-.clock-wrap{ margin:6px 0 8px; }            /* replaces inline style */
-input[type="text"]{ margin-bottom:12px; }   /* was 20px */
-button{ margin-top:8px; }                   /* was 10px */
+.brand{ margin:4px 0 4px; }
+.guesses-meter{ margin:2px 0 6px; }
+.gm-label{ top:-16px; font-size:13px; }
+.clock-wrap{ margin:6px 0 8px; }
+input[type="text"]{ margin-bottom:12px; }
+button{ margin-top:8px; }
 
-.game-info h3{ margin-bottom:8px; }         /* a little tighter */
-.info-box{ padding-top:8px; }               /* reduce top air */
+.game-info h3{ margin-bottom:8px; }
+.info-box{ padding-top:8px; }
 
 /* --- extra-tight for phones --- */
 @media (max-width:520px){
@@ -267,7 +267,7 @@ button{ margin-top:8px; }                   /* was 10px */
 /* Prevent mobile overflow of the white guess card inside the black outline */
 .guess{
   box-sizing: border-box;     /* include the 2px border in the width calc */
-  max-width: 100%;            /* belt-and-suspenders */
+  max-width: 100%;
 }
 
 /* Give the inner content a hair more breathing room on phones */
@@ -309,7 +309,6 @@ html, body, #root { width:100%; max-width:100%; overflow-x:hidden; }
     margin-top: 8px;
   }
 
-  /* Previous Guesses: edge-to-edge with gutter and no overflow */
   .game-info{ width:100%; }
   .info-box{
     width: min(96vw, 720px);
@@ -320,7 +319,6 @@ html, body, #root { width:100%; max-width:100%; overflow-x:hidden; }
   }
   .info-box-inner{ min-width:0 !important; }
 
-  /* tighten headings a hair */
   .game-info h3{ font-size: clamp(18px, 4.6vw, 20px); }
 }
 
@@ -339,34 +337,17 @@ html, body {
 *, *::before, *::after { box-sizing: border-box; }
 
 /* unified page gutters with iOS safe-area support */
-:root {
-  --page-gutter: clamp(12px, 4vw, 20px);
-}
-.App {
-  padding-left: var(--page-gutter);
-  padding-right: var(--page-gutter);
-}
+:root { --page-gutter: clamp(12px, 4vw, 20px); }
+.App { padding-left: var(--page-gutter); padding-right: var(--page-gutter); }
 @supports (padding: max(0px)) {
   .App {
     padding-left: max(var(--page-gutter), env(safe-area-inset-left));
     padding-right: max(var(--page-gutter), env(safe-area-inset-right));
   }
 }
-
-/* make key blocks use full phone width (no “squished” feel) */
 @media (max-width: 520px) {
-  .search-container,
-  .info-box {
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-  /* let the input truly fill the row */
-  input[type="text"] {
-    width: 100%;
-    max-width: none;
-  }
-  /* a touch less page padding on small screens */
+  .search-container, .info-box { width: 100%; margin-left: 0; margin-right: 0; }
+  input[type="text"] { width: 100%; max-width: none; }
   :root { --page-gutter: clamp(10px, 4vw, 16px); }
 }
 
@@ -463,3 +444,73 @@ html, body {
   padding: 16px; text-align:center;
 }
 
+/* ===== Team picker ===== */
+.team-picker{ margin-top:10px; }
+.team-picker-label{ font-weight:600; margin-bottom:6px; text-align:left; }
+.team-grid{
+  display:grid; grid-template-columns: repeat(6, 44px); gap:8px;
+  justify-content:flex-start;
+}
+.team-btn{
+  width:44px; height:44px; border-radius:10px; border:2px solid #ddd; background:#fff;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.team-btn img{ width:28px; height:28px; object-fit:contain; }
+.team-btn.active{ border-color:#FF5910; box-shadow:0 0 0 3px #ff591033; }
+@media (max-width:520px){
+  .team-grid{ grid-template-columns: repeat(6, 40px); gap:6px; }
+  .team-btn{ width:40px; height:40px; }
+  .team-btn img{ width:24px; height:24px; }
+}
+.handle-cell{ display:flex; align-items:center; gap:8px; }
+.lb-team{ width:18px; height:18px; object-fit:contain; }
+
+/* ===== Archive Day FAB, modal & banner ===== */
+.archive-fab{
+  position: fixed;
+  bottom: 16px; left: 16px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #fff; color:#111; border:2px solid #000; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+  font-size: 24px; line-height: 1;
+  display:flex; align-items:center; justify-content:center;
+  z-index: 3000;
+}
+.archive-fab:hover{ background:#f7f7f7; }
+
+.archive-modal-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 3200;
+  display:flex; align-items:center; justify-content:center;
+}
+.archive-modal{
+  background:#fff; border-radius:12px; padding:22px 18px 18px;
+  width:min(420px, 92vw);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  position:relative; animation: fadeIn .2s;
+}
+.archive-close{
+  position:absolute; top:8px; right:10px; background:none; border:none; font-size:22px; color:#888; cursor:pointer;
+}
+.archive-close:hover{ color:#222; }
+.archive-title{ margin:0 0 6px; font-family:'Schoolbell', cursive; font-size:24px; }
+.archive-sub{ margin:0 0 12px; font-size:.95rem; color:#555; }
+.archive-row{ display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:12px; }
+.archive-row input[type="date"]{
+  border:2px solid #000; border-radius:6px; padding:8px 10px; font-size:1rem;
+}
+.archive-actions{ display:flex; gap:10px; justify-content:center; }
+.archive-go{ background:#FFD700; padding:8px 12px; border-radius:8px; border:none; }
+.archive-go:hover{ background:#FFCC00; }
+.archive-cancel{ background:#eee; padding:8px 12px; border-radius:8px; border:none; }
+
+.archive-banner{
+  position:sticky; top:0; z-index:1500;
+  background:#fff3c4; border-bottom:2px solid #000; padding:8px 10px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.archive-exit{
+  background:#fff; border:2px solid #000; border-radius:8px; padding:4px 10px; cursor:pointer;
+}
+.archive-exit:hover{ background:#f7f7f7; }
