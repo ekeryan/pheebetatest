@@ -53,7 +53,7 @@ const players = [
   { id: 138, name: "Maddy Siegrist",    team: "DAL", position: "F", number: "20", age: 25, height: "6'2\"", conf: "West", previousTeams: [] },
   { id: 11,  name: "Arike Ogunbowale",  team: "DAL", position: "G", number: "24", age: 28, height: "5'8\"", conf: "West", previousTeams: [] },
   { id: 5005, name: "Haley Jones",      team: "DAL", position: "F-G", number: "30", age: 24, height: "6'1\"", conf: "West", previousTeams: ["ATL"] },
-  { id: 5004, name: "Grace Berger",     team: "DAL", position: "G", number: "34", age: 26, height: "5'11"", conf: "West", previousTeams: ["IND","MIN"] },
+  { id: 5004, name: "Grace Berger",     team: "DAL", position: "G", number: "34", age: 26, height: "5'11\"", conf: "West", previousTeams: ["IND","MIN"] },
   { id: 140, name: "Tyasha Harris",     team: "DAL", position: "G", number: "52", age: 27, height: "5'10\"", conf: "West", previousTeams: ["CON"] },
 
 // GSV — Valkyries
