@@ -145,7 +145,7 @@ const players = [
   { id: 4,   name: "Natasha Mack",        team: "PHX", position: "F-C", number: "4",  age: 28, height: "6'3\"",  conf: "West", previousTeams: ["CHI","MIN"] },
   { id: 5,   name: "Monique Akoa Makani", team: "PHX", position: "G",   number: "8",  age: 21, height: "5'9\"",  conf: "West", previousTeams: [] },
   { id: 6,   name: "Kitija Laksa",        team: "PHX", position: "G",   number: "9",  age: 29, height: "6'0\"",  conf: "West", previousTeams: [] },
-  { id: 26,  name: "DeWanna Bonner",      team: "PHX", position: "G-F", number: "14", age: 38, height: "6'4\"",  conf: "West", previousTeams: ["PHX","CON"] },
+  { id: 26,  name: "DeWanna Bonner",      team: "PHX", position: "G-F", number: "14", age: 38, height: "6'4\"",  conf: "West", previousTeams: ["IND","CON"] },
   { id: 9,   name: "Kalani Brown",        team: "PHX", position: "C",   number: "21", age: 28, height: "6'7\"",  conf: "West", previousTeams: ["LAS","ATL","DAL"] },
   { id: 10,  name: "Kathryn Westbeld",    team: "PHX", position: "F",   number: "24", age: 29, height: "6'2\"",  conf: "West", previousTeams: [] },
   { id: 8,   name: "Alyssa Thomas",       team: "PHX", position: "F",   number: "25", age: 31, height: "6'2\"",  conf: "West", previousTeams: ["CON"] },
