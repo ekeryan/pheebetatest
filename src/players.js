@@ -25,7 +25,7 @@ const players = [
   { id: 51, name: "Kia Nurse",          team: "CHI", position: "G", number: "11", age: 29, height: "6'0\"", conf: "East", previousTeams: ["NYL","PHX"] },
   { id: 57, name: "Michaela Onyenwere", team: "CHI", position: "F", number: "12", age: 26, height: "6'0\"", conf: "East", previousTeams: ["NYL","PHX"] },
   { id: 54, name: "Maddy Westbeld",     team: "CHI", position: "F", number: "21", age: 22, height: "6'3\"", conf: "East", previousTeams: [] },
-  { id: 5002, name: "Courtney Vandersloot", team: "CHI", position: "G", number: "22", age: 36, height: "5'8"", conf: "East", previousTeams: ["NYL"] },
+  { id: 5002, name: "Courtney Vandersloot", team: "CHI", position: "G", number: "22", age: 36, height: "5'8", conf: "East", previousTeams: ["NYL"] },
   { id: 67, name: "Rachel Banham",      team: "CHI", position: "G", number: "24", age: 31, height: "5'9\"", conf: "East", previousTeams: ["MIN","CON"] },
 
   // CON - Sun
