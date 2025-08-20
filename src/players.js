@@ -38,7 +38,7 @@ const players = [
   { id: 104, name: "Saniya Rivers",      team: "CON", position: "G", number: "22", age: 22, height: "6'1\"", conf: "East", previousTeams: [] },
   { id: 106, name: "Aneesah Morrow",     team: "CON", position: "F", number: "24", age: 22, height: "6'1\"", conf: "East", previousTeams: [] },
   { id: 84,  name: "Aaliyah Edwards",    team: "CON", position: "F", number: "8", age: 22, height: "6'3\"", conf: "East", previousTeams: ["WAS"] },
-  { id: 5003, name: "Mamignan Touré",    team: "CON", position: "G", number: "28", age: 30, height: "6'0"", conf: "East", previousTeams: [] },
+  { id: 5003, name: "Mamignan Touré",    team: "CON", position: "G", number: "28", age: 30, height: "6'0\"", conf: "East", previousTeams: [] },
   { id: 107, name: "Tina Charles",       team: "CON", position: "C", number: "31", age: 37, height: "6'4\"", conf: "East", previousTeams: ["NYL","WAS","PHX","SEA","ATL"] },
   { id: 108, name: "Leila Lacan",        team: "CON", position: "G", number: "47", age: 21, height: "5'11\"", conf: "East", previousTeams: [] },
 
@@ -52,7 +52,7 @@ const players = [
   { id: 137, name: "Luisa Geiselsöder", team: "DAL", position: "C", number: "18", age: 25, height: "6'4\"", conf: "West", previousTeams: [] },
   { id: 138, name: "Maddy Siegrist",    team: "DAL", position: "F", number: "20", age: 25, height: "6'2\"", conf: "West", previousTeams: [] },
   { id: 11,  name: "Arike Ogunbowale",  team: "DAL", position: "G", number: "24", age: 28, height: "5'8\"", conf: "West", previousTeams: [] },
-  { id: 5005, name: "Haley Jones",      team: "DAL", position: "F-G", number: "30", age: 24, height: "6'1"", conf: "West", previousTeams: ["ATL"] },
+  { id: 5005, name: "Haley Jones",      team: "DAL", position: "F-G", number: "30", age: 24, height: "6'1\"", conf: "West", previousTeams: ["ATL"] },
   { id: 5004, name: "Grace Berger",     team: "DAL", position: "G", number: "34", age: 26, height: "5'11"", conf: "West", previousTeams: ["IND","MIN"] },
   { id: 140, name: "Tyasha Harris",     team: "DAL", position: "G", number: "52", age: 27, height: "5'10\"", conf: "West", previousTeams: ["CON"] },
 
