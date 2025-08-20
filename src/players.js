@@ -163,3 +163,6 @@ const players = [
   { id: 2020, name: "Brittney Sykes",      team: "SEA", position: "G",   number: "20", age: 31, height: "5'9\"",  conf: "West", previousTeams: ["ATL","LAS","WAS"] },
   { id: 11,   name: "Katie Lou Samuelson", team: "SEA", position: "F",   number: "33", age: 30, height: "6'3\"",  conf: "West", previousTeams: ["CHI","DAL","SEA","LAS"] },
 ];
+
+export default players;
+
