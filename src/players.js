@@ -1,5 +1,3 @@
-// updated day: 2025-08-09 (post-tradedeadline).
-
 const players = [
   // ATL — Dream
   { id: 70,  name: "Rhyne Howard", team: "ATL", position: "G-F", number: "10", age: 25, height: "6'2\"", conf: "East", previousTeams: [] },
@@ -21,56 +19,55 @@ const players = [
   { id: 10, name: "Ariel Atkins",       team: "CHI", position: "G", number: "7",  age: 28, height: "5'11\"", conf: "East", previousTeams: ["WAS"] },
   { id: 68, name: "Rebecca Allen",      team: "CHI", position: "G", number: "9",  age: 32, height: "6'2\"", conf: "East", previousTeams: ["NYL","CON"] },
   { id: 44, name: "Kamilla Cardoso",    team: "CHI", position: "C", number: "10", age: 23, height: "6'7\"", conf: "East", previousTeams: [] },
-  { id: 7,  name: "Sevgi Uzun",         team: "CHI", position: "G", number: "0", age: 28, height: "5'10\"", conf: "East", previousTeams: ["DAL","PHX"] },
+  { id: 7,  name: "Sevgi Uzun",         team: "CHI", position: "G", number: "0",  age: 28, height: "5'10\"", conf: "East", previousTeams: ["DAL","PHX"] },
   { id: 51, name: "Kia Nurse",          team: "CHI", position: "G", number: "11", age: 29, height: "6'0\"", conf: "East", previousTeams: ["NYL","PHX"] },
   { id: 57, name: "Michaela Onyenwere", team: "CHI", position: "F", number: "12", age: 26, height: "6'0\"", conf: "East", previousTeams: ["NYL","PHX"] },
   { id: 54, name: "Maddy Westbeld",     team: "CHI", position: "F", number: "21", age: 22, height: "6'3\"", conf: "East", previousTeams: [] },
-  { id: 5002, name: "Courtney Vandersloot", team: "CHI", position: "G", number: "22", age: 36, height: "5'8", conf: "East", previousTeams: ["NYL"] },
+  { id: 5002, name: "Courtney Vandersloot", team: "CHI", position: "G", number: "22", age: 36, height: "5'8\"", conf: "East", previousTeams: ["NYL"] },
   { id: 67, name: "Rachel Banham",      team: "CHI", position: "G", number: "24", age: 31, height: "5'9\"", conf: "East", previousTeams: ["MIN","CON"] },
 
-  // CON - Sun
-  { id: 96, name: "Marina Mabrey",       team: "CON", position: "G", number: "3",  age: 29, height: "5'11\"", conf: "East", previousTeams: ["LAS","DAL","CHI"] },
-  { id: 98, name: "Haley Peters",        team: "CON", position: "F-G", number: "7", age: 33, height: "6'3\"", conf: "East", previousTeams: ["LVA","WAS","ATL"] },
-  { id: 99, name: "Olivia Nelson-Ododa", team: "CON", position: "C", number: "10", age: 25, height: "6'5\"", conf: "East", previousTeams: ["LAS"] },
-  { id: 100, name: "Rayah Marshall",     team: "CON", position: "C-F", number: "13", age: 21, height: "6'4\"", conf: "East", previousTeams: [] },
-  { id: 101, name: "Bria Hartley",       team: "CON", position: "G", number: "14", age: 33, height: "5'9\"", conf: "East", previousTeams: ["WAS","NYL","PHX","IND"] },
-  { id: 102, name: "Lindsay Allen",      team: "CON", position: "G", number: "15", age: 30, height: "5'8\"", conf: "East", previousTeams: ["NYL","LVA","IND","MIN","CHI"] },
-  { id: 104, name: "Saniya Rivers",      team: "CON", position: "G", number: "22", age: 22, height: "6'1\"", conf: "East", previousTeams: [] },
-  { id: 106, name: "Aneesah Morrow",     team: "CON", position: "F", number: "24", age: 22, height: "6'1\"", conf: "East", previousTeams: [] },
-  { id: 84,  name: "Aaliyah Edwards",    team: "CON", position: "F", number: "8", age: 22, height: "6'3\"", conf: "East", previousTeams: ["WAS"] },
-  { id: 5003, name: "Mamignan Touré",    team: "CON", position: "G", number: "28", age: 30, height: "6'0\"", conf: "East", previousTeams: [] },
-  { id: 107, name: "Tina Charles",       team: "CON", position: "C", number: "31", age: 37, height: "6'4\"", conf: "East", previousTeams: ["NYL","WAS","PHX","SEA","ATL"] },
-  { id: 108, name: "Leila Lacan",        team: "CON", position: "G", number: "47", age: 21, height: "5'11\"", conf: "East", previousTeams: [] },
+  // CON — Sun
+  { id: 96, name: "Marina Mabrey",       team: "CON", position: "G",   number: "3",  age: 29, height: "5'11\"", conf: "East", previousTeams: ["LAS","DAL","CHI"] },
+  { id: 98, name: "Haley Peters",        team: "CON", position: "F-G", number: "7",  age: 33, height: "6'3\"",  conf: "East", previousTeams: ["LVA","WAS","ATL"] },
+  { id: 99, name: "Olivia Nelson-Ododa", team: "CON", position: "C",   number: "10", age: 25, height: "6'5\"",  conf: "East", previousTeams: ["LAS"] },
+  { id: 100, name: "Rayah Marshall",     team: "CON", position: "C-F", number: "13", age: 21, height: "6'4\"",  conf: "East", previousTeams: [] },
+  { id: 101, name: "Bria Hartley",       team: "CON", position: "G",   number: "14", age: 33, height: "5'9\"",  conf: "East", previousTeams: ["WAS","NYL","PHX","IND"] },
+  { id: 102, name: "Lindsay Allen",      team: "CON", position: "G",   number: "15", age: 30, height: "5'8\"",  conf: "East", previousTeams: ["NYL","LVA","IND","MIN","CHI"] },
+  { id: 104, name: "Saniya Rivers",      team: "CON", position: "G",   number: "22", age: 22, height: "6'1\"",  conf: "East", previousTeams: [] },
+  { id: 106, name: "Aneesah Morrow",     team: "CON", position: "F",   number: "24", age: 22, height: "6'1\"",  conf: "East", previousTeams: [] },
+  { id: 84,  name: "Aaliyah Edwards",    team: "CON", position: "F",   number: "8",  age: 22, height: "6'3\"",  conf: "East", previousTeams: ["WAS"] },
+  { id: 5003, name: "Mamignan Touré",    team: "CON", position: "G",   number: "28", age: 30, height: "6'0\"",  conf: "East", previousTeams: [] },
+  { id: 107, name: "Tina Charles",       team: "CON", position: "C",   number: "31", age: 37, height: "6'4\"",  conf: "East", previousTeams: ["NYL","WAS","PHX","SEA","ATL"] },
+  { id: 108, name: "Leila Lacan",        team: "CON", position: "G",   number: "47", age: 21, height: "5'11\"", conf: "East", previousTeams: [] },
 
   // DAL — Wings
-  { id: 28,  name: "Diamond Miller",    team: "DAL", position: "F", number: "1",  age: 24, height: "6'3\"", conf: "West", previousTeams: ["MIN"] },
-  { id: 131, name: "Myisha Hines-Allen",team: "DAL", position: "F", number: "2",  age: 30, height: "6'1\"", conf: "West", previousTeams: ["WAS","MIN"] },
-  { id: 65,  name: "Paige Bueckers",    team: "DAL", position: "G", number: "5",  age: 23, height: "6'0\"", conf: "West", previousTeams: [] },
-  { id: 134, name: "Aziaha James",      team: "DAL", position: "G", number: "10", age: 23, height: "5'8\"", conf: "West", previousTeams: [] },
-  { id: 135, name: "JJ Quinerly",       team: "DAL", position: "G", number: "11", age: 23, height: "5'8\"", conf: "West", previousTeams: [] },
-  { id: 9002, name: "Li Yueru",         team: "DAL", position: "C", number: "28", age: 26, height: "6'7\"", conf: "West", previousTeams: ["CHI","SEA"] },
-  { id: 137, name: "Luisa Geiselsöder", team: "DAL", position: "C", number: "18", age: 25, height: "6'4\"", conf: "West", previousTeams: [] },
-  { id: 138, name: "Maddy Siegrist",    team: "DAL", position: "F", number: "20", age: 25, height: "6'2\"", conf: "West", previousTeams: [] },
-  { id: 11,  name: "Arike Ogunbowale",  team: "DAL", position: "G", number: "24", age: 28, height: "5'8\"", conf: "West", previousTeams: [] },
-  { id: 5005, name: "Haley Jones",      team: "DAL", position: "F-G", number: "30", age: 24, height: "6'1\"", conf: "West", previousTeams: ["ATL"] },
-  { id: 5004, name: "Grace Berger",     team: "DAL", position: "G", number: "34", age: 26, height: "5'11\"", conf: "West", previousTeams: ["IND","MIN"] },
-  { id: 140, name: "Tyasha Harris",     team: "DAL", position: "G", number: "52", age: 27, height: "5'10\"", conf: "West", previousTeams: ["CON"] },
+  { id: 28,  name: "Diamond Miller",    team: "DAL", position: "F",   number: "1",  age: 24, height: "6'3\"",  conf: "West", previousTeams: ["MIN"] },
+  { id: 131, name: "Myisha Hines-Allen",team: "DAL", position: "F",   number: "2",  age: 30, height: "6'1\"",  conf: "West", previousTeams: ["WAS"] },
+  { id: 65,  name: "Paige Bueckers",    team: "DAL", position: "G",   number: "5",  age: 23, height: "6'0\"",  conf: "West", previousTeams: [] },
+  { id: 134, name: "Aziaha James",      team: "DAL", position: "G",   number: "10", age: 23, height: "5'8\"",  conf: "West", previousTeams: [] },
+  { id: 135, name: "JJ Quinerly",       team: "DAL", position: "G",   number: "11", age: 23, height: "5'8\"",  conf: "West", previousTeams: [] },
+  { id: 9002, name: "Li Yueru",         team: "DAL", position: "C",   number: "28", age: 26, height: "6'7\"",  conf: "West", previousTeams: ["CHI","SEA"] },
+  { id: 137, name: "Luisa Geiselsöder", team: "DAL", position: "C",   number: "18", age: 25, height: "6'4\"",  conf: "West", previousTeams: [] },
+  { id: 138, name: "Maddy Siegrist",    team: "DAL", position: "F",   number: "20", age: 25, height: "6'2\"",  conf: "West", previousTeams: [] },
+  { id: 11,  name: "Arike Ogunbowale",  team: "DAL", position: "G",   number: "24", age: 28, height: "5'8\"",  conf: "West", previousTeams: [] },
+  { id: 5005, name: "Haley Jones",      team: "DAL", position: "F-G", number: "30", age: 24, height: "6'1\"",  conf: "West", previousTeams: ["ATL"] },
+  { id: 5004, name: "Grace Berger",     team: "DAL", position: "G",   number: "34", age: 26, height: "5'11\"", conf: "West", previousTeams: ["IND","MIN"] },
+  { id: 140, name: "Tyasha Harris",     team: "DAL", position: "G",   number: "52", age: 27, height: "5'10\"", conf: "West", previousTeams: ["DAL","CON"] },
 
-// GSV — Valkyries
-  { id: 5006, name: "Carla Leite",          team: "GSV", position: "G", number: "0",  age: 20, height: "5'9\"",  conf: "West", previousTeams: [] },
-  { id: 5007, name: "Kaitlyn Chen",         team: "GSV", position: "G", number: "2",  age: 23, height: "5'9\"",  conf: "West", previousTeams: [] },
-  { id: 5008, name: "Laeticia Amihere",     team: "GSV", position: "F", number: "3",  age: 23, height: "6'3\"",  conf: "West", previousTeams: ["ATL"] },
-  { id: 109,  name: "Kayla Thornton",       team: "GSV", position: "F", number: "5",  age: 33, height: "6'1\"",  conf: "West", previousTeams: ["WAS","DAL","NYL"] },
-  { id: 132,  name: "Kaila Charles",        team: "GSV", position: "G-F", number: "6", age: 27, height: "6'1\"",  conf: "West", previousTeams: ["CON","ATL","SEA"] },
-  { id: 5009, name: "Iliana Rupert",        team: "GSV", position: "C", number: "12", age: 23, height: "6'4\"",  conf: "West", previousTeams: ["LVA"] },
-  { id: 111,  name: "Janelle Salaun",       team: "GSV", position: "F", number: "13", age: 19, height: "6'2\"",  conf: "West", previousTeams: [] },
-  { id: 112,  name: "Temi Fagbenle",        team: "GSV", position: "C", number: "14", age: 32, height: "6'4\"",  conf: "West", previousTeams: [] },
-  { id: 79,   name: "Tiffany Hayes",        team: "GSV", position: "G", number: "15", age: 36, height: "5'10\"", conf: "West", previousTeams: ["ATL","CON","LVA"] },
-  { id: 114,  name: "Kate Martin",          team: "GSV", position: "G", number: "20", age: 25, height: "6'0\"",  conf: "West", previousTeams: ["LVA"] },
-  { id: 115,  name: "Veronica Burton",      team: "GSV", position: "G", number: "22", age: 24, height: "5'9\"",  conf: "West", previousTeams: ["DAL","CON"] },
-  { id: 116,  name: "Cecilia Zandalasini",  team: "GSV", position: "F", number: "24", age: 28, height: "6'2\"",  conf: "West", previousTeams: ["MIN"] },
-  { id: 117,  name: "Monique Billings",     team: "GSV", position: "F", number: "25", age: 28, height: "6'4\"",  conf: "West", previousTeams: ["ATL","DAL","PHX"] },
-
+  // GSV — Valkyries
+  { id: 5006, name: "Carla Leite",          team: "GSV", position: "G",   number: "0",  age: 20, height: "5'9\"",  conf: "West", previousTeams: [] },
+  { id: 5007, name: "Kaitlyn Chen",         team: "GSV", position: "G",   number: "2",  age: 23, height: "5'9\"",  conf: "West", previousTeams: [] },
+  { id: 5008, name: "Laeticia Amihere",     team: "GSV", position: "F",   number: "3",  age: 23, height: "6'3\"",  conf: "West", previousTeams: ["ATL"] },
+  { id: 109,  name: "Kayla Thornton",       team: "GSV", position: "F",   number: "5",  age: 33, height: "6'1\"",  conf: "West", previousTeams: ["WAS","DAL","NYL"] },
+  { id: 132,  name: "Kaila Charles",        team: "GSV", position: "G-F", number: "6",  age: 27, height: "6'1\"",  conf: "West", previousTeams: ["CON","ATL","SEA"] },
+  { id: 5009, name: "Iliana Rupert",        team: "GSV", position: "C",   number: "12", age: 23, height: "6'4\"",  conf: "West", previousTeams: ["LVA"] },
+  { id: 111,  name: "Janelle Salaun",       team: "GSV", position: "F",   number: "13", age: 19, height: "6'2\"",  conf: "West", previousTeams: [] },
+  { id: 112,  name: "Temi Fagbenle",        team: "GSV", position: "C",   number: "14", age: 32, height: "6'4\"",  conf: "West", previousTeams: ["MIN"] },
+  { id: 79,   name: "Tiffany Hayes",        team: "GSV", position: "G",   number: "15", age: 36, height: "5'10\"", conf: "West", previousTeams: ["ATL","CON","LVA"] },
+  { id: 114,  name: "Kate Martin",          team: "GSV", position: "G",   number: "20", age: 25, height: "6'0\"",  conf: "West", previousTeams: ["LVA"] },
+  { id: 115,  name: "Veronica Burton",      team: "GSV", position: "G",   number: "22", age: 24, height: "5'9\"",  conf: "West", previousTeams: ["DAL","CON"] },
+  { id: 116,  name: "Cecilia Zandalasini",  team: "GSV", position: "F",   number: "24", age: 28, height: "6'2\"",  conf: "West", previousTeams: ["MIN"] },
+  { id: 117,  name: "Monique Billings",     team: "GSV", position: "F",   number: "25", age: 28, height: "6'4\"",  conf: "West", previousTeams: ["ATL","DAL","PHX"] },
 
   // IND — Fever
   { id: 46,  name: "Kelsey Mitchell", team: "IND", position: "G",   number: "0",  age: 30, height: "5'8\"", conf: "East", previousTeams: [] },
@@ -84,7 +81,7 @@ const players = [
   { id: 8,   name: "Makayla Timpson", team: "IND", position: "F-C", number: "21", age: 23, height: "6'2\"", conf: "East", previousTeams: [] },
   { id: 16,  name: "Caitlin Clark",   team: "IND", position: "G",   number: "22", age: 23, height: "6'0\"", conf: "East", previousTeams: [] },
   { id: 78,  name: "Sydney Colson",   team: "IND", position: "G",   number: "51", age: 36, height: "5'8\"", conf: "East", previousTeams: ["NYL","LVA","MIN","CHI"] },
-  { id: 5010, name: "Chloe Bibby",    team: "IND", position: "F",   number: "55", age: 27,  height: "6'0\"",     conf: "East", previousTeams: ["GSV"] },
+  { id: 5010, name: "Chloe Bibby",    team: "IND", position: "F",   number: "55", age: 27, height: "6'0\"", conf: "East", previousTeams: ["GSV"] },
 
   // LAS — Sparks
   { id: 72,  name: "Sania Feagin",       team: "LAS", position: "F",   number: "1",  age: 22, height: "6'3\"", conf: "West", previousTeams: [] },
@@ -103,13 +100,13 @@ const players = [
   // LVA — Aces
   { id: 37,  name: "Jackie Young",          team: "LVA", position: "G",   number: "0",  age: 27, height: "6'0\"", conf: "West", previousTeams: [] },
   { id: 49,  name: "Kierstan Bell",         team: "LVA", position: "F",   number: "1",  age: 24, height: "6'1\"", conf: "West", previousTeams: [] },
-  { id: 130, name: "NaLyssa Smith",         team: "LVA", position: "F",   number: "3",  age: 25, height: "6'4\"", conf: "West", previousTeams: ["IND","DAL"] },
+  { id: 130, name: "NaLyssa Smith",         team: "LVA", position: "F",   number: "3",  age: 25, height: "6'4\"", conf: "West", previousTeams: ["IND"] },
   { id: 23,  name: "Dana Evans",            team: "LVA", position: "G",   number: "11", age: 26, height: "5'6\"", conf: "West", previousTeams: ["CHI"] },
   { id: 18,  name: "Chelsea Gray",          team: "LVA", position: "G",   number: "12", age: 32, height: "5'11\"", conf: "West", previousTeams: ["LAS","CON"] },
   { id: 2,   name: "Aaliyah Nye",           team: "LVA", position: "G-F", number: "13", age: 22, height: "6'0\"", conf: "West", previousTeams: [] },
   { id: 55,  name: "Megan Gustafson",       team: "LVA", position: "C",   number: "17", age: 28, height: "6'3\"", conf: "West", previousTeams: ["DAL","PHX","WAS"] },
   { id: 1,   name: "A'ja Wilson",           team: "LVA", position: "C-F", number: "22", age: 29, height: "6'4\"", conf: "West", previousTeams: [] },
-  { id: 39,  name: "Jewell Loyd",           team: "LVA", position: "G",   number: "24", age: 29, height: "5'10\"", conf: "West", previousTeams: ["SEA"] },
+  { id: 39,  name: "Jewell Loyd",           team: "LVA", position: "G",   number: "24", age: 31, height: "5'10\"", conf: "West", previousTeams: ["SEA"] },
   { id: 19,  name: "Cheyenne Parker-Tyus",  team: "LVA", position: "F",   number: "32", age: 32, height: "6'4\"", conf: "West", previousTeams: ["CHI","ATL"] },
   { id: 48,  name: "Kiah Stokes",           team: "LVA", position: "C",   number: "41", age: 31, height: "6'3\"", conf: "West", previousTeams: ["NYL"] },
 
@@ -127,7 +124,6 @@ const players = [
   { id: 59,   name: "Napheesa Collier",     team: "MIN", position: "F",   number: "24", age: 28, height: "6'1\"",  conf: "West", previousTeams: [] },
   { id: 91,   name: "Maria Kliundikova",    team: "MIN", position: "F",   number: "77", age: 27, height: "6'4\"",  conf: "West", previousTeams: ["LAS"] },
 
-
   // NYL — Liberty
   { id: 13,  name: "Breanna Stewart",   team: "NYL", position: "F", number: "30", age: 31, height: "6'4\"", conf: "East", previousTeams: ["SEA"] },
   { id: 40,  name: "Jonquel Jones",     team: "NYL", position: "C", number: "35", age: 31, height: "6'6\"", conf: "East", previousTeams: ["CON"] },
@@ -143,21 +139,20 @@ const players = [
   { id: 5012, name: "Stephanie Talbot", team: "NYL", position: "F", number: "6",  age: 30, height: "6'2\"", conf: "East", previousTeams: ["PHX","MIN","SEA","LAS","GSV"] },
 
   // PHX — Mercury
-{ id: 74,  name: "Satou Sabally",       team: "PHX", position: "F",   number: "0",  age: 26, height: "6'4\"",  conf: "West", previousTeams: ["DAL"] },
-{ id: 2,   name: "Lexi Held",           team: "PHX", position: "G",   number: "1",  age: 26, height: "5'10\"", conf: "West", previousTeams: [] },
-{ id: 43,  name: "Kahleah Copper",      team: "PHX", position: "G-F", number: "2",  age: 28, height: "6'1\"",  conf: "West", previousTeams: ["CHI"] },
-{ id: 4,   name: "Natasha Mack",        team: "PHX", position: "F-C", number: "4",  age: 28, height: "6'3\"",  conf: "West", previousTeams: ["CHI","MIN"] },
-{ id: 5,   name: "Monique Akoa Makani", team: "PHX", position: "G",   number: "8",  age: 21, height: "5'9\"",  conf: "West", previousTeams: [] },
-{ id: 6,   name: "Kitija Laksa",        team: "PHX", position: "G",   number: "9",  age: 29, height: "6'0\"",  conf: "West", previousTeams: [] },
-{ id: 26,  name: "DeWanna Bonner",      team: "PHX", position: "G-F", number: "14", age: 38, height: "6'4\"",  conf: "West", previousTeams: ["PHX","CON","IND"] },
-{ id: 9,   name: "Kalani Brown",        team: "PHX", position: "C",   number: "21", age: 28, height: "6'7\"",  conf: "West", previousTeams: ["LAS","ATL","DAL"] },
-{ id: 10,  name: "Kathryn Westbeld",    team: "PHX", position: "F",   number: "24", age: 29, height: "6'2\"",  conf: "West", previousTeams: [] },
-{ id: 8,   name: "Alyssa Thomas",       team: "PHX", position: "F",   number: "25", age: 31, height: "6'2\"",  conf: "West", previousTeams: ["CON"] },
-{ id: 12,  name: "Sami Whitcomb",       team: "PHX", position: "G",   number: "33", age: 37, height: "5'10\"", conf: "West", previousTeams: ["SEA","NYL"] },
-
+  { id: 74,  name: "Satou Sabally",       team: "PHX", position: "F",   number: "0",  age: 26, height: "6'4\"",  conf: "West", previousTeams: ["DAL"] },
+  { id: 2,   name: "Lexi Held",           team: "PHX", position: "G",   number: "1",  age: 26, height: "5'10\"", conf: "West", previousTeams: [] },
+  { id: 43,  name: "Kahleah Copper",      team: "PHX", position: "G-F", number: "2",  age: 28, height: "6'1\"",  conf: "West", previousTeams: ["CHI"] },
+  { id: 4,   name: "Natasha Mack",        team: "PHX", position: "F-C", number: "4",  age: 28, height: "6'3\"",  conf: "West", previousTeams: ["CHI","MIN"] },
+  { id: 5,   name: "Monique Akoa Makani", team: "PHX", position: "G",   number: "8",  age: 21, height: "5'9\"",  conf: "West", previousTeams: [] },
+  { id: 6,   name: "Kitija Laksa",        team: "PHX", position: "G",   number: "9",  age: 29, height: "6'0\"",  conf: "West", previousTeams: [] },
+  { id: 26,  name: "DeWanna Bonner",      team: "PHX", position: "G-F", number: "14", age: 38, height: "6'4\"",  conf: "West", previousTeams: ["PHX","CON"] },
+  { id: 9,   name: "Kalani Brown",        team: "PHX", position: "C",   number: "21", age: 28, height: "6'7\"",  conf: "West", previousTeams: ["LAS","ATL","DAL"] },
+  { id: 10,  name: "Kathryn Westbeld",    team: "PHX", position: "F",   number: "24", age: 29, height: "6'2\"",  conf: "West", previousTeams: [] },
+  { id: 8,   name: "Alyssa Thomas",       team: "PHX", position: "F",   number: "25", age: 31, height: "6'2\"",  conf: "West", previousTeams: ["CON"] },
+  { id: 12,  name: "Sami Whitcomb",       team: "PHX", position: "G",   number: "33", age: 37, height: "5'10\"", conf: "West", previousTeams: ["SEA","NYL"] },
 
   // SEA — Storm
-  { id: 62,   name: "Nika Muhl",           team: "SEA", position: "G",   number: "1",  age: 22, height: "5'9\"",  conf: "West", previousTeams: [] },
+  { id: 62,   name: "Nika Muhl",           team: "SEA", position: "G",   number: "1",  age: 24, height: "5'9\"",  conf: "West", previousTeams: [] },
   { id: 63,   name: "Nneka Ogwumike",      team: "SEA", position: "F",   number: "3",  age: 34, height: "6'2\"",  conf: "West", previousTeams: ["LAS"] },
   { id: 76,   name: "Skylar Diggins",      team: "SEA", position: "G",   number: "4",  age: 33, height: "5'9\"",  conf: "West", previousTeams: ["PHX","DAL"] },
   { id: 34,   name: "Gabby Williams",      team: "SEA", position: "F",   number: "5",  age: 28, height: "5'11\"", conf: "West", previousTeams: ["CHI"] },
@@ -165,24 +160,6 @@ const players = [
   { id: 6,    name: "Ezi Magbegor",        team: "SEA", position: "F-C", number: "13", age: 26, height: "6'4\"",  conf: "West", previousTeams: [] },
   { id: 7,    name: "Dominique Malonga",   team: "SEA", position: "C",   number: "14", age: 20, height: "6'6\"",  conf: "West", previousTeams: [] },
   { id: 8,    name: "Erica Wheeler",       team: "SEA", position: "G",   number: "17", age: 34, height: "5'7\"",  conf: "West", previousTeams: ["ATL","NYL","IND","LAS"] },
-  { id: 2020, name: "Brittney Sykes",      team: "SEA", position: "G",   number: "20", age: 31, height: "5'9\"",  conf: "West", previousTeams: ["WAS","ATL","PHX"] },
-  { id: 11,   name: "Katie Lou Samuelson", team: "SEA", position: "F",   number: "33", age: 30, height: "6'3\"",  conf: "West", previousTeams: ["LAS","DAL","PHX","WAS","MIN"] },
-
-
-// WAS — Mystics
-  { id: 75,    name: "Shakira Austin",   team: "WAS", position: "F-C", number: "0",  age: 25, height: "6'5\"",  conf: "East", previousTeams: [] },
-  { id: 89,    name: "Sug Sutton",       team: "WAS", position: "G",   number: "1",  age: 26, height: "5'8\"",  conf: "East", previousTeams: ["PHX"] },
-  { id: 97,    name: "Jacy Sheldon",     team: "WAS", position: "G",   number: "4",  age: 24, height: "5'10\"", conf: "East", previousTeams: ["DAL","CON"] },
-  { id: 87,    name: "Jade Melbourne",   team: "WAS", position: "G",   number: "5",  age: 22, height: "5'10\"", conf: "East", previousTeams: ["SEA"] },
-  { id: 81,    name: "Georgia Amoore",   team: "WAS", position: "G",   number: "8",  age: 24, height: "5'7\"",  conf: "East", previousTeams: [] },
-  { id: 44_21, name: "Emily Engstler",   team: "WAS", position: "F",   number: "21", age: 25, height: "6'1\"",  conf: "East", previousTeams: ["IND","MIN"] },
-  { id: 82,    name: "Sonia Citron",     team: "WAS", position: "G",   number: "22", age: 21, height: "6'1\"",  conf: "East", previousTeams: [] },
-  { id: 83,    name: "Stefanie Dolson",  team: "WAS", position: "C",   number: "31", age: 33, height: "6'5\"",  conf: "East", previousTeams: ["CHI","NYL"] },
-  { id: 7_777, name: "Alysha Clark",     team: "WAS", position: "F",   number: "32", age: 38, height: "5'11\"", conf: "East", previousTeams: ["SEA","LVA"] },
-  { id: 88,    name: "Lucy Olsen",       team: "WAS", position: "G",   number: "33", age: 21, height: "5'10\"", conf: "East", previousTeams: [] },
-  { id: 49_44, name: "Kiki Iriafen",     team: "WAS", position: "F",   number: "44", age: 22, height: "6'3\"",  conf: "East", previousTeams: [] },
-
-
+  { id: 2020, name: "Brittney Sykes",      team: "SEA", position: "G",   number: "20", age: 31, height: "5'9\"",  conf: "West", previousTeams: ["ATL","LAS","WAS"] },
+  { id: 11,   name: "Katie Lou Samuelson", team: "SEA", position: "F",   number: "33", age: 30, height: "6'3\"",  conf: "West", previousTeams: ["CHI","DAL","SEA","LAS"] },
 ];
-
-export default players;
