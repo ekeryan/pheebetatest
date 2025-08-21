@@ -266,7 +266,7 @@ button{ margin-top:8px; }
 
 /* Prevent mobile overflow of the white guess card inside the black outline */
 .guess{
-  box-sizing: border-box;     /* include the 2px border in the width calc */
+  box-sizing: border-box;
   max-width: 100%;
 }
 
@@ -354,7 +354,7 @@ html, body {
 /* ===== Streaks / Leaderboard UI ===== */
 .streak-fab{
   position: fixed;
-  top: 60px;                    /* ← under the help ? */
+  top: 60px;                 /* under the help ? */
   right: 16px;
   width: 36px; height: 36px; border-radius: 50%;
   background: #FFD700;
@@ -469,12 +469,12 @@ html, body {
 /* ===== Archive Day FAB, modal & banner ===== */
 .archive-fab{
   position: fixed;
-  top: 108px;                 /* ← stacked below streak-fab */
+  top: 108px;               /* stacked below streak-fab */
   right: 16px;
   width: 36px; height: 36px; border-radius: 50%;
   background: #fff; color:#111; border:2px solid #000; cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,.2);
-  font-size: 24px; line-height: 1;
+  font-size: 26px; line-height: 1;
   display:flex; align-items:center; justify-content:center;
   z-index: 3000;
 }
@@ -563,4 +563,76 @@ html, body {
   .ia-btn{
     width:min(360px, 92vw);
   }
+}
+
+/* ===== Monthly streak calendar (Duolingo-ish) ===== */
+.month-wrap { display:flex; flex-direction:column; gap:8px; }
+
+.cal-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-bottom:4px;
+}
+.cal-title{
+  display:flex; align-items:center; gap:8px;
+  font-family:'Chakra Petch',serif; font-weight:700; font-size:18px;
+}
+.cal-chip{
+  background:#FFB547; color:#111; border-radius:10px; padding:2px 8px;
+  font-size:12px; font-weight:700;
+  border:1.5px solid #c68412;
+}
+.cal-nav{
+  background:#fff; border:2px solid #000; border-radius:10px;
+  padding:4px 10px; cursor:pointer; font-weight:700; line-height:1;
+}
+.cal-nav:hover{ background:#f7f7f7; }
+
+.cal-stats{
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+.cal-stat{
+  flex:0 0 auto; background:#fff; border:1px solid #eee; border-radius:12px;
+  padding:8px 12px; min-width:150px;
+}
+.cal-stat-num{ font-weight:700; }
+.cal-stat-label{ font-size:12px; color:#666; }
+
+.cal-dow-row{
+  display:grid; grid-template-columns:repeat(7, 1fr);
+  gap:6px; margin-top:2px;
+}
+.cal-dow{
+  text-align:center; font-size:12px; color:#666;
+}
+
+.cal-grid{
+  display:grid; grid-template-columns:repeat(7, 1fr);
+  gap:6px; margin-top:2px;
+}
+.cal-cell{
+  position:relative; height:28px; border-radius:14px;
+  background:#f1f1f1; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.cal-cell.out{ opacity:.35; background:#f7f7f7; }
+.daynum{ position:relative; z-index:2; font-size:12px; color:#222; }
+.daynum.today{
+  outline:2px solid #FF5910; border-radius:10px; padding:0 4px;
+}
+
+/* the yellow “streak run” bar */
+.run{
+  position:absolute; inset:2px; height:24px; background:linear-gradient(90deg,#ffb84a,#ffd84a);
+  border:1.5px solid #cfa000; z-index:1;
+  border-radius:14px;              /* single-day run */
+  box-shadow: inset 0 0 10px rgba(0,0,0,.06);
+}
+.run.start{ border-top-right-radius:0; border-bottom-right-radius:0; }
+.run.mid{ border-radius:0; }
+.run.end{ border-top-left-radius:0; border-bottom-left-radius:0; }
+
+/* compact on phones */
+@media (max-width:520px){
+  .cal-grid .cal-cell{ height:26px; }
+  .run{ height:22px; }
 }

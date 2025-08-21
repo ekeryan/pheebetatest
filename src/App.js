@@ -83,7 +83,7 @@ const isLocked = (rotationKey) => localStorage.getItem(lockKeyFor(rotationKey)) 
 
 function pickSolutionFor(rotationKey) {
   const seed = xmur3(rotationKey)();
-  const rand = mulberry32(seed);            // ✅ fixed: no stray variable
+  const rand = mulberry32(seed);
   const idx = Math.floor(rand() * playersStable.length);
   return playersStable[idx];
 }
@@ -131,6 +131,75 @@ const normalizeHandle = (h = '') =>
    .replace(/[^\w.-]/g, '')  // only letters/numbers/_ . -
    .slice(0, 20);            // max 20 chars
 
+// ======== badges (client-first; optional Supabase sync) ========
+const BADGE_DEFS = {
+  streak5:  { label: '5-Streak',     emoji: '🔥' },
+  streak10: { label: '10-Streak',    emoji: '💥' },
+  perfect:  { label: 'Perfect Game', emoji: '🎯' },
+  under30:  { label: 'Under 30s',    emoji: '⏱️' },
+};
+const loadBadgesLS = () => {
+  try { return JSON.parse(localStorage.getItem('phee:badges') || '[]'); } catch { return []; }
+};
+const saveBadgesLS = (arr) => {
+  try { localStorage.setItem('phee:badges', JSON.stringify([...new Set(arr)])); } catch {}
+};
+
+// ======== plays history (for heatmap) ========
+const loadPlaysLS = () => {
+  try { return JSON.parse(localStorage.getItem('phee:plays') || '[]'); } catch { return []; }
+};
+const savePlaysLS = (arr) => {
+  try { localStorage.setItem('phee:plays', JSON.stringify([...new Set(arr)])); } catch {}
+};
+
+// --- small heatmap component (with 🖥️ icon for played days) ---
+function StreakCalendar({ plays = [] }) {
+  // last 42 days, ending today (Chicago time)
+  const days = [];
+  for (let i = 41; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(ctDateStr(d));
+  }
+  const playedSet = new Set(plays);
+  return (
+    <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:8}}>
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'repeat(7, 16px)',
+        gridAutoRows:'16px',
+        gap:'4px',
+        padding:'6px 8px',
+        background:'#fff',
+        border:'1px solid #eee',
+        borderRadius:8,
+      }}>
+        {days.map((ymd) => {
+          const on = playedSet.has(ymd);
+          const isToday = ymd === ctDateStr();
+          return (
+            <div
+              key={ymd}
+              title={`${ymd}${on ? ' — played' : ''}${isToday ? ' (today)' : ''}`}
+              style={{
+                width:16, height:16, borderRadius:3,
+                background: on ? '#fff7e6' : '#e9e9e9',
+                outline: isToday ? '2px solid #FF5910' : 'none',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:12
+              }}
+            >
+              {on ? '🖥️' : ''}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{fontSize:12, color:'#666'}}>Last 6 weeks</div>
+    </div>
+  );
+}
+
 // ================= app =================
 function App() {
   const [playerName, setPlayerName] = useState('');
@@ -150,8 +219,9 @@ function App() {
   const [portraitModalDismissed, setPortraitModalDismissed] = useState(false);
   const intervalRef = useRef(null);
 
-  // 🔥 Streak/leaderboard + team/logo
+  // 🔥 Streak/leaderboard + team/logo + tabs + my badges/plays
   const [showStreak, setShowStreak] = useState(false);
+  const [streakTab, setStreakTab] = useState('leaderboard'); // 'leaderboard' | 'mystats'
   const [handle, setHandle] = useState(localStorage.getItem('phee:handle') || '');
   const [teamChoice, setTeamChoice] = useState(localStorage.getItem('phee:team') || '');
   const [currentStreak, setCurrentStreak] = useState(parseInt(localStorage.getItem('phee:streak') || '0', 10));
@@ -159,6 +229,8 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [lbLoading, setLbLoading] = useState(false);
   const [lbError, setLbError] = useState('');
+  const [, setMyBadges] = useState(loadBadgesLS()); // we only need the setter now
+  const [plays, setPlays] = useState(loadPlaysLS());
 
   const supaReady = !!supabase;
 
@@ -241,6 +313,7 @@ function App() {
     Object.keys(localStorage)
       .filter(k => k.startsWith(`${STORAGE_PREFIX}:game:`) && k !== gKey)
       .forEach(k => localStorage.removeItem(k));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotationKey, archiveMode]);
 
   // persist
@@ -319,7 +392,8 @@ function App() {
 
       if (foundPlayer.id === selectedPlayer.id) {
         setShowSilhouette(true);
-        handleGameEnd(`🎉 Correct! The player was ${selectedPlayer.name}!`, true); // ✅ pass win
+        const nextTries = triesTaken + 1; // state update is async; compute local
+        handleGameEnd(`🎉 Correct! The player was ${selectedPlayer.name}!`, true, nextTries);
       } else {
         setGuessedPlayers(prev => [...prev, correctedPlayerName]);
         setGuessesLeft(prev => prev > 0 ? prev - 1 : 0);
@@ -431,7 +505,7 @@ function App() {
         ? ''
         : numberDiff <= 2
           ? 'yellow'
-          : guessedNumber < selectedNumber
+          : guessedNumber < selectedPlayer.number
             ? 'arrow-up'
             : 'arrow-down',
     };
@@ -463,11 +537,8 @@ function App() {
   };
 
   // ✅ update streaks + sync to Supabase on game end (uses helper/upsert)
-  const updateStreakAndSync = async (won) => {
+  const updateStreakAndSync = async (won, meta = {}) => {
     if (!won) {
-      // If you want to reset streak on a loss, uncomment:
-      // setCurrentStreak(0);
-      // localStorage.setItem('phee:streak', '0');
       return;
     }
 
@@ -486,6 +557,30 @@ function App() {
 
     const newBest = Math.max(bestStreak, newStreak);
 
+    // record plays (for heatmap)
+    const playsNow = loadPlaysLS();
+    if (!playsNow.includes(today)) {
+      playsNow.push(today);
+      if (playsNow.length > 365) playsNow.splice(0, playsNow.length - 365);
+      savePlaysLS(playsNow);
+      setPlays(playsNow);
+    }
+
+    // award badges (kept for leaderboard-only flair)
+    const triesUsed = Number.isFinite(meta.triesUsed) ? meta.triesUsed : triesTaken;
+    const timeSecs  = Number.isFinite(meta.timeSecs)  ? meta.timeSecs  : timer;
+    const newly = [];
+    if (triesUsed === 1) newly.push('perfect');
+    if (timeSecs <= 30) newly.push('under30');
+    if (newStreak >= 5) newly.push('streak5');
+    if (newStreak >= 10) newly.push('streak10');
+
+    const have = loadBadgesLS();
+    const afterBadges = Array.from(new Set([...have, ...newly]));
+    saveBadgesLS(afterBadges);
+    setMyBadges(afterBadges);
+
+    // update local streaks
     setCurrentStreak(newStreak);
     setBestStreak(newBest);
     localStorage.setItem('phee:streak', String(newStreak));
@@ -520,10 +615,21 @@ function App() {
       } catch (e) {
         console.warn('Supabase upsert failed:', e);
       }
+
+      // optional: try to sync badges if a `badges` column exists (ignore errors if not)
+      try {
+        await supabase
+          .from('profiles')
+          .update({ badges: afterBadges })
+          .eq('handle', clean)
+          .eq('device_id', DEVICE_ID);
+      } catch (e) {
+        // ignore if column doesn't exist / RLS blocks
+      }
     }
   };
 
-  const handleGameEnd = (msg, won) => {
+  const handleGameEnd = (msg, won, triesUsedMaybe) => {
     clearInterval(intervalRef.current);
     setMessage(msg);
     setGameOver(true);
@@ -533,9 +639,8 @@ function App() {
       try { localStorage.setItem(lockKeyFor(rotationKey), '1'); } catch {}
       setShowPortraitModal(true);
       setPortraitModalDismissed(false);
-      updateStreakAndSync(!!won); // ✅ streak only in live mode
+      updateStreakAndSync(!!won, { triesUsed: triesUsedMaybe, timeSecs: timer });
     } else {
-      // Archive mode: no lock/streaks
       setShowPortraitModal(true);
       setPortraitModalDismissed(false);
     }
@@ -544,6 +649,7 @@ function App() {
   // Leaderboard fetch (uses helper/loadLeaderboard)
   const openStreakModal = async () => {
     setShowStreak(true);
+    setStreakTab('leaderboard');
     if (!supaReady) return;
     setLbLoading(true);
     setLbError('');
@@ -565,7 +671,6 @@ function App() {
       return;
     }
 
-    // persist locally right away
     setHandle(clean);
     localStorage.setItem('phee:handle', clean);
     localStorage.setItem('phee:team', teamChoice || '');
@@ -595,7 +700,14 @@ function App() {
       return;
     }
 
-    // success → reload board
+    try {
+      await supabase
+        .from('profiles')
+        .update({ badges: loadBadgesLS() })
+        .eq('handle', clean)
+        .eq('device_id', DEVICE_ID);
+    } catch {}
+
     setLbError('');
     const { data, error: lbErr } = await loadLeaderboard();
     if (lbErr) {
@@ -607,7 +719,6 @@ function App() {
 
   // Archive actions
   const goArchive = () => {
-    // YYYY-MM-DD -> rotation key
     const key = `CT-${archiveDate}`;
     setArchiveMode(true);
     setRotationKey(key);
@@ -685,6 +796,41 @@ function App() {
     if (gameOver) clearInterval(intervalRef.current);
   }, [gameOver]);
 
+  // ====== small UI helpers ======
+  const TabBtn = ({ active, onClick, children }) => (
+    <button
+      onClick={onClick}
+      className="ia-btn"
+      style={{
+        background: active ? '#FFD700' : '#fff',
+        border: active ? 'none' : '2px solid #000',
+        boxShadow: active ? '0 2px 8px rgba(0,0,0,.12)' : '0 2px 8px rgba(0,0,0,.08)',
+        borderRadius: 10,
+        padding: '8px 12px',
+        margin: 0
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  const BadgeDot = ({ id }) => {
+    const def = BADGE_DEFS[id] || { emoji: '🏅', label: id };
+    return (
+      <span
+        title={def.label}
+        style={{
+          display:'inline-flex', alignItems:'center', justifyContent:'center',
+          width:18, height:18, borderRadius:9, background:'#fff',
+          border:'1.5px solid #000', marginRight:6, fontSize:12, lineHeight:'18px'
+        }}
+        aria-label={def.label}
+      >
+        {def.emoji}
+      </span>
+    );
+  };
+
   return (
     <div className="App">
       <div className="fade-in-main">
@@ -704,24 +850,6 @@ function App() {
         >
           ?
         </div>
-
-        {/* 🔝 put both circle buttons under the help icon (top-right) */}
-        <button
-          className="streak-fab"
-          title="Streaks & Leaderboard"
-          onClick={openStreakModal}
-          aria-label="Streaks & Leaderboard"
-        >
-          🔥
-        </button>
-        <button
-          className="archive-fab"
-          title="Archive Day"
-          onClick={() => setShowArchive(true)}
-          aria-label="Archive Day"
-        >
-          ⏪
-        </button>
 
         {showHelp && (
           <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
@@ -980,6 +1108,25 @@ function App() {
         {/* === /Previous Guesses === */}
       </div>
 
+      {/* 🔥 Floating streak button */}
+      <button
+        className="streak-fab"
+        title="Streaks & Leaderboard"
+        onClick={openStreakModal}
+      >
+        🔥
+      </button>
+
+      {/* ⏪ Archive Day FAB (stacked under fire) */}
+      <button
+        className="archive-fab"
+        title="Archive Day"
+        onClick={() => setShowArchive(true)}
+        aria-label="Archive Day"
+      >
+        ⏪
+      </button>
+
       {/* 🔥 Streaks/Leaderboard modal */}
       {showStreak && (
         <div className="streak-modal-overlay" onClick={() => setShowStreak(false)}>
@@ -988,97 +1135,118 @@ function App() {
 
             <h2 className="streak-title">Streaks</h2>
 
-            <div className="streak-my">
-              <div className="streak-row">
-                <div className="streak-chip">Current: <b>{currentStreak}</b></div>
-                <div className="streak-chip">Best: <b>{bestStreak}</b></div>
-              </div>
-
-              <div className="handle-row">
-                <label htmlFor="handle" className="handle-label">@ Handle</label>
-                <input
-                  id="handle"
-                  className="handle-input"
-                  placeholder="yourname"   // no '@' in the field
-                  value={handle}
-                  inputMode="text"
-                  pattern="[A-Za-z0-9_.-]*"
-                  title="Use letters, numbers, underscore, dot, or dash"
-                  onChange={(e) => setHandle(normalizeHandle(e.target.value))}
-                />
-                <button className="handle-save" onClick={saveHandle}>Save</button>
-              </div>
-
-              {/* Team logo picker */}
-              <div className="team-picker">
-                <div className="team-picker-label">Team logo (optional)</div>
-                <div className="team-grid">
-                  {TEAM_CODES.map(code => {
-                    const file = teamCodeToFile(code);
-                    const active = teamChoice === code;
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        className={`team-btn ${active ? 'active' : ''}`}
-                        onClick={() => setTeamChoice(code)}
-                        title={code}
-                      >
-                        <img
-                          src={`${PUB}/logos/${file}.png`}
-                          alt={code}
-                          loading="lazy"
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {!supaReady && (
-                <div className="streak-note">
-                  Leaderboard is offline (missing Supabase env keys). Local streaks still work.
-                </div>
-              )}
+            {/* tabs */}
+            <div className="inline-actions" style={{marginTop:6, marginBottom:12}}>
+              <TabBtn active={streakTab === 'leaderboard'} onClick={() => setStreakTab('leaderboard')}>Leaderboard</TabBtn>
+              <TabBtn active={streakTab === 'mystats'} onClick={() => setStreakTab('mystats')}>My Streaks</TabBtn>
             </div>
 
-            <h3 className="lb-title">Leaderboard (Best Streak)</h3>
+            {streakTab === 'mystats' ? (
+              <>
+                <div className="streak-my">
+                  <div className="streak-row">
+                    <div className="streak-chip">Current: <b>{currentStreak}</b></div>
+                    <div className="streak-chip">Best: <b>{bestStreak}</b></div>
+                  </div>
 
-            <div className="lb-box">
-              {lbLoading ? (
-                <div className="lb-loading">Loading…</div>
-              ) : lbError ? (
-                <div className="lb-error">{lbError}</div>
-              ) : (
-                <table className="streak-table">
-                  <thead>
-                    <tr><th>#</th><th>Handle</th><th>Best</th><th>Current</th></tr>
-                  </thead>
-                  <tbody>
-                    {(leaderboard || []).map((r, i) => (
-                      <tr key={r.handle || i} className={handle && r.handle === handle ? 'me' : ''}>
-                        <td>{i + 1}</td>
-                        <td className="handle-cell">
-                          {r.team && (
+                  <div className="handle-row">
+                    <label htmlFor="handle" className="handle-label">@ Handle</label>
+                    <input
+                      id="handle"
+                      className="handle-input"
+                      placeholder="yourname"   // no '@' in the field
+                      value={handle}
+                      inputMode="text"
+                      pattern="[A-Za-z0-9_.-]*"
+                      title="Use letters, numbers, underscore, dot, or dash"
+                      onChange={(e) => setHandle(normalizeHandle(e.target.value))}
+                    />
+                    <button className="handle-save" onClick={saveHandle}>Save</button>
+                  </div>
+
+                  {/* Team logo picker */}
+                  <div className="team-picker">
+                    <div className="team-picker-label">Team logo (optional)</div>
+                    <div className="team-grid">
+                      {TEAM_CODES.map(code => {
+                        const file = teamCodeToFile(code);
+                        const active = teamChoice === code;
+                        return (
+                          <button
+                            key={code}
+                            type="button"
+                            className={`team-btn ${active ? 'active' : ''}`}
+                            onClick={() => setTeamChoice(code)}
+                            title={code}
+                          >
                             <img
-                              src={`${PUB}/logos/${teamCodeToFile(r.team)}.png`}
-                              alt={r.team}
-                              className="lb-team"
+                              src={`${PUB}/logos/${file}.png`}
+                              alt={code}
+                              loading="lazy"
                             />
-                          )}
-                          @{r.handle}
-                        </td>
-                        <td>{(r.best_streak ?? 0)}</td>
-                        <td>{(r.current_streak ?? r.streak ?? 0)}</td>
-                      </tr>
-                    ))}
-                    {(!leaderboard || leaderboard.length === 0) && (
-                      <tr><td colSpan="4" style={{textAlign:'center', opacity:.7}}>No entries yet.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {!supaReady && (
+                    <div className="streak-note">
+                      Leaderboard is offline (missing Supabase env keys). Local streaks still work.
+                    </div>
+                  )}
+                </div>
+
+                {/* Heatmap only (badges panel removed) */}
+                <h3 className="lb-title">Daily Play Calendar</h3>
+                <div className="lb-box" style={{padding:'12px'}}>
+                  <StreakCalendar plays={plays} />
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="lb-title">Leaderboard (Best Streak)</h3>
+                <div className="lb-box">
+                  {lbLoading ? (
+                    <div className="lb-loading">Loading…</div>
+                  ) : lbError ? (
+                    <div className="lb-error">{lbError}</div>
+                  ) : (
+                    <table className="streak-table">
+                      <thead>
+                        <tr><th>#</th><th>Handle</th><th>Best</th><th>Current</th></tr>
+                      </thead>
+                      <tbody>
+                        {(leaderboard || []).map((r, i) => {
+                          const rowBadges = Array.isArray(r.badges) ? r.badges : [];
+                          return (
+                            <tr key={r.handle || i} className={handle && r.handle === handle ? 'me' : ''}>
+                              <td>{i + 1}</td>
+                              <td className="handle-cell">
+                                {rowBadges.slice(0,4).map(b => <BadgeDot key={`${r.handle}-${b}`} id={b} />)}
+                                {r.team && (
+                                  <img
+                                    src={`${PUB}/logos/${teamCodeToFile(r.team)}.png`}
+                                    alt={r.team}
+                                    className="lb-team"
+                                  />
+                                )}
+                                @{r.handle}
+                              </td>
+                              <td>{(r.best_streak ?? 0)}</td>
+                              <td>{(r.current_streak ?? r.streak ?? 0)}</td>
+                            </tr>
+                          );
+                        })}
+                        {(!leaderboard || leaderboard.length === 0) && (
+                          <tr><td colSpan="4" style={{textAlign:'center', opacity:.7}}>No entries yet.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
