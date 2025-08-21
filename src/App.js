@@ -153,7 +153,7 @@ const savePlaysLS = (arr) => {
   try { localStorage.setItem('phee:plays', JSON.stringify([...new Set(arr)])); } catch {}
 };
 
-// --- small heatmap component (with 🖥️ icon for played days) ---
+// --- small heatmap component (with 🔥 icon for played days) ---
 function StreakCalendar({ plays = [] }) {
   // last 42 days, ending today (Chicago time)
   const days = [];
@@ -190,7 +190,7 @@ function StreakCalendar({ plays = [] }) {
                 fontSize:12
               }}
             >
-              {on ? '🖥️' : ''}
+              {on ? '🔥️' : ''}
             </div>
           );
         })}
