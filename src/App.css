@@ -636,3 +636,50 @@ html, body {
   .cal-grid .cal-cell{ height:26px; }
   .run{ height:22px; }
 }
+
+/* === Calendar visibility upgrade === */
+
+/* put a subtle frame behind the whole grid */
+.cal-grid{
+  padding: 8px;                       /* adds breathing room for day borders */
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e9edf3; /* faint box so the grid reads */
+}
+
+/* make each day a crisp chip (still keeps your run bar) */
+.cal-cell{
+  background:#fff;
+  border:1.6px solid #cfd6df;         /* <-- the grid line you can actually see */
+  border-radius: 10px;                 /* keeps your rounded look */
+  height: 30px;                        /* a touch taller so borders don’t feel cramped */
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+}
+
+/* out-of-month days still visible but muted */
+.cal-cell.out{
+  background:#fafafa;
+  border-color:#dfe6ee;
+  opacity:.75;
+}
+
+/* numbers a little bolder so they pop against the run bar */
+.daynum{ font-weight:600; color:#1a1a1a; }
+
+/* much stronger “today” ring (no JS changes needed) */
+.cal-cell:has(.daynum.today){
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #FF5910;  /* white halo + orange ring */
+}
+
+/* keep your streak run bar but lift its contrast slightly */
+.run{
+  inset: 3px;                          /* leaves a sliver of the cell border visible */
+  border-radius: 10px;
+  background: linear-gradient(90deg,#ffbb55,#ffe066);
+  border:1.25px solid #e2b200;
+  box-shadow: inset 0 0 10px rgba(0,0,0,.06);
+}
+
+/* optional: one-line high-contrast mode — add class .hc to .cal-grid when needed */
+.cal-grid.hc .cal-cell{ border-color:#000; }
+
